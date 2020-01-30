@@ -22,8 +22,9 @@ namespace GFPS
 		string ModName = "Support Heli";
 		string Developer = "iLike2Teabag";
 		string Version = "1.0";
-		IniFile ini;
+		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
 		Keys activateKey = Keys.F10;
+
 
 		public Main()
 		{
@@ -31,14 +32,6 @@ namespace GFPS
 			KeyDown += onKeyDown;
 			Interval = 1;
 			Tick += onNthTick;
-
-			// read in settings
-			ini = new IniFile("scripts/SupportHeli.ini");
-			activateKey = (Keys) Enum.Parse(typeof(Keys), ini.Read("hotkey"));
-			heliModel = (SupportHeliModel)Enum.Parse(typeof(SupportHeliModel), ini.Read("heliModel"));
-			supportHeliHeight = float.Parse(ini.Read("height"));
-			haloRadius = float.Parse(ini.Read("radius"));
-			heliBulletProof = int.Parse(ini.Read("bulletproof")) > 0 ? true : false;
 		}
 
 
@@ -48,6 +41,8 @@ namespace GFPS
 			{
 				GTA.UI.Notification.Show(ModName + " " + Version + " by " + Developer + " Loaded");
 				firstTime = false;
+
+				readSettings();
 			}
 		}
 
@@ -55,14 +50,15 @@ namespace GFPS
 		{
 			if (e.KeyCode == activateKey)
 			{
-				spawnSupportHeli(SupportHeliModel.Akula, supportHeliHeight, haloRadius, fPatt, heliBulletProof);
+				supportHeli = spawnSupportHeli(heliModel, supportHeliHeight, haloRadius, heliBulletProof);
+				spawnNpcsIntoHeli(supportHeli, heliModel, fPatt);
 			}
 		}
 
 
 
 		int iTick = 0;
-		int N = 1000;
+		int N = 100;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
@@ -79,14 +75,18 @@ namespace GFPS
 			{
 				// if heli is destroyed (undriveable), delete its blip and set heliActive to false
 				if (!supportHeli.IsDriveable)
-				{
-					heliActive = false;
-					supportHeli.AttachedBlip.Delete();
-				}
+					cleanUp();
 
 				// make the driver chase to player's offset
-				supportHeli.Driver.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
-				supportHeli.Driver.AlwaysKeepTask = true;
+				try
+				{
+					supportHeli.Driver.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
+					supportHeli.Driver.AlwaysKeepTask = true;
+				}
+				catch
+				{
+					cleanUp();
+				}
 			}
 		}
 
@@ -99,11 +99,10 @@ namespace GFPS
 		Vehicle supportHeli;
 		float haloRadius = 20.0f;
 		float supportHeliHeight = 40.0f;
-		FiringPattern fPatt = FiringPattern.FullAuto;
 		readonly Vector3 nullVector3 = new Vector3(0f, 0f, 0f);
 		bool heliBulletProof = true;
 
-		public Vehicle spawnSupportHeli(SupportHeliModel model, float height, float radius, FiringPattern fp, bool bulletProof)
+		public Vehicle spawnSupportHeli(SupportHeliModel model, float height, float radius, bool bulletProof)
 		{
 			// if a heli is already active, return immediately
 			if (heliActive)
@@ -113,23 +112,28 @@ namespace GFPS
 			}
 
 			// determine player position
-			Vector3 playerPos = Game.Player.Character.Position;
-			playerPos.Z += height;
+			Vector3 heliPos = Game.Player.Character.Position + getOffsetVector3(70f, radius);
 
 			// spawn a heli
-			Vehicle heli = World.CreateVehicle(0x46699F47, playerPos);
+			Vehicle heli = World.CreateVehicle((Model)((int)model), heliPos);
 			heli.IsBulletProof = true;
 			heli.AddBlip();
 			heli.AttachedBlip.Sprite = BlipSprite.HelicopterAnimated;
 			heli.AttachedBlip.Color = BlipColor.Green;
-			supportHeli = heli;
-
+			
 			// activate engine & freeze the entity so it doesn't fall
 			heli.IsEngineRunning = true;
-			heli.IsPositionFrozen = true;
-			Script.Wait(500);
-			heli.IsPositionFrozen = false;
 
+			// mark support heli as active and return the vehicle instance
+			heliActive = true;
+			return heli;
+		}
+
+
+
+		FiringPattern fPatt = FiringPattern.FullAuto;
+		private void spawnNpcsIntoHeli(Vehicle heli, SupportHeliModel model, FiringPattern fp)
+		{
 			// spawn pilot & copilot
 			Ped pilot = World.CreatePed(PedHash.Pilot01SMY, nullVector3);
 			pilot.SetIntoVehicle(heli, VehicleSeat.Driver);
@@ -138,21 +142,43 @@ namespace GFPS
 
 			// add pilot & copilot to player's RelationshipGroup
 			RelationshipGroup playerRelGroup = Game.Player.Character.RelationshipGroup;
-			pilot.RelationshipGroup = playerRelGroup;
+			//pilot.RelationshipGroup = playerRelGroup;
 			coplt.RelationshipGroup = playerRelGroup;
 
 			// task pilot with chasing player with heli always
-			pilot.Task.ChaseWithHelicopter(Game.Player.Character, playerPos);
+			Vector3 playerPos = Game.Player.Character.Position;
+			pilot.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
 			pilot.AlwaysKeepTask = true;
 
 			// task copilot with shooting baddies using the gun
-			coplt.FiringPattern = FiringPattern.BurstFireHeli;
+			coplt.FiringPattern = fp;
 			coplt.Task.FightAgainstHatedTargets(50000);
 			coplt.AlwaysKeepTask = true;
 
-			// mark support heli as active and return the vehicle instance
-			heliActive = true;
-			return heli;
+			// if multi-seat heli, spawn more shooters
+			switch (model)
+			{
+				case SupportHeliModel.Valkyrie:
+				case SupportHeliModel.Buzzard:
+					spawnGunners(heli, 2, fp, WeaponHash.Railgun);
+					break;
+
+			}
+		}
+
+
+
+		private void spawnGunners(Vehicle heli, int num, FiringPattern fp, WeaponHash weapon)
+		{
+			for (int i = 0; i < num; i++)
+			{
+				Ped gunner = World.CreatePed(PedHash.Blackops01SMY, nullVector3);
+				gunner.SetIntoVehicle(heli, VehicleSeat.Any);
+				gunner.FiringPattern = fp;
+				gunner.Weapons.Give(weapon, 9999, true, true);
+				gunner.Task.FightAgainstHatedTargets(50000);
+				gunner.AlwaysKeepTask = true;
+			}
 		}
 
 
@@ -171,13 +197,33 @@ namespace GFPS
 
 			return new Vector3(x, y, height);
 		}
+
+
+		
+		private void readSettings () {
+			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey") ?? "F10");
+			heliModel = (SupportHeliModel)Enum.Parse(typeof(SupportHeliModel), ini.Read("heliModel") ?? "Akula");
+			supportHeliHeight = float.Parse(ini.Read("height") ?? "40.0");
+			haloRadius = float.Parse(ini.Read("radius") ?? "20.0");
+			heliBulletProof = int.Parse(ini.Read("bulletproof") ?? "1") > 0 ? true : false;
+
+			GTA.UI.Notification.Show("Heli: " + heliModel + "~n~Height: " + supportHeliHeight + "~n~Radius: " + haloRadius);
+		}
+
+
+
+		private void cleanUp()
+		{
+			heliActive = false;
+			supportHeli.AttachedBlip.Delete();
+		}
 	}
 
 
 
 	public enum SupportHeliModel : uint 
 	{
-		Akula = 0x46699F47,
+		Akula = 1181327175u,
 		Valkyrie = 2694714877u,
 		Buzzard = 788747387u,
 	}
