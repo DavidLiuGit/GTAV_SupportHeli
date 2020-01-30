@@ -101,6 +101,8 @@ namespace GFPS
 		float supportHeliHeight = 40.0f;
 		readonly Vector3 nullVector3 = new Vector3(0f, 0f, 0f);
 		bool heliBulletProof = true;
+		const WeaponHash defaultPrimary = WeaponHash.AdvancedRifle;
+		const WeaponHash defaultSidearm = WeaponHash.CombatPistol;
 
 		public Vehicle spawnSupportHeli(SupportHeliModel model, float height, float radius, bool bulletProof)
 		{
@@ -134,33 +136,35 @@ namespace GFPS
 		FiringPattern fPatt = FiringPattern.FullAuto;
 		private void spawnNpcsIntoHeli(Vehicle heli, SupportHeliModel model, FiringPattern fp)
 		{
-			// spawn pilot & copilot
+			// spawn pilot & set into heli
 			Ped pilot = World.CreatePed(PedHash.Pilot01SMY, nullVector3);
 			pilot.SetIntoVehicle(heli, VehicleSeat.Driver);
-			Ped coplt = World.CreatePed(PedHash.Pilot02SMM, nullVector3);
-			coplt.SetIntoVehicle(heli, VehicleSeat.Passenger);
 
-			// add pilot & copilot to player's RelationshipGroup
+			// add pilot to player's RelationshipGroup
 			RelationshipGroup playerRelGroup = Game.Player.Character.RelationshipGroup;
-			//pilot.RelationshipGroup = playerRelGroup;
-			coplt.RelationshipGroup = playerRelGroup;
+			pilot.RelationshipGroup = playerRelGroup;
 
 			// task pilot with chasing player with heli always
 			Vector3 playerPos = Game.Player.Character.Position;
 			pilot.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
 			pilot.AlwaysKeepTask = true;
 
-			// task copilot with shooting baddies using the gun
-			coplt.FiringPattern = fp;
-			coplt.Task.FightAgainstHatedTargets(50000);
-			coplt.AlwaysKeepTask = true;
+			// give pilot sidearm
+			pilot.Weapons.Give(defaultSidearm, 9999, true, true);
 
 			// if multi-seat heli, spawn more shooters
 			switch (model)
 			{
+				case SupportHeliModel.Akula:
+					spawnGunners(heli, (int)model, 0);
+					break;
+
 				case SupportHeliModel.Valkyrie:
+					spawnGunners(heli, (int) model, 2, WeaponHash.AdvancedRifle);
+					break;
+
 				case SupportHeliModel.Buzzard:
-					spawnGunners(heli, 2, fp, WeaponHash.Railgun);
+					spawnGunners(heli, (int) model, 2, WeaponHash.AdvancedRifle);
 					break;
 
 			}
@@ -168,14 +172,46 @@ namespace GFPS
 
 
 
-		private void spawnGunners(Vehicle heli, int num, FiringPattern fp, WeaponHash weapon)
+		private void spawnGunners(Vehicle heli, int model, int num, WeaponHash weapon = defaultPrimary, WeaponHash sidearm = WeaponHash.CombatPistol)
 		{
+			// spawn copilot if needed
+			if (model == (int) SupportHeliModel.Akula || model == (int) SupportHeliModel.Valkyrie)
+			{
+				// spawn copilot & set into heli
+				Ped coplt = World.CreatePed(PedHash.Pilot02SMM, nullVector3);
+				coplt.SetIntoVehicle(heli, VehicleSeat.Passenger);
+
+				// set relationship group to player's group
+				RelationshipGroup playerRelGroup = Game.Player.Character.RelationshipGroup;
+				coplt.RelationshipGroup = playerRelGroup;
+				Game.Player.Character.PedGroup.Add(coplt, false);
+
+				// give copilot sidearm
+				coplt.Weapons.Give(defaultSidearm, 9999, true, true);
+
+				// task copilot with shooting baddies
+				coplt.Task.FightAgainstHatedTargets(50000);
+				coplt.AlwaysKeepTask = true;
+
+				// set copilot firing mode, depending on the model
+				if (model == (int)SupportHeliModel.Akula) coplt.FiringPattern = FiringPattern.FullAuto;
+				else if (model == (int)SupportHeliModel.Valkyrie) coplt.FiringPattern = FiringPattern.BurstFireHeli;
+			}
+
+
+			// spawn gunners
 			for (int i = 0; i < num; i++)
 			{
+				// spawn the gunner and put into a seat
 				Ped gunner = World.CreatePed(PedHash.Blackops01SMY, nullVector3);
 				gunner.SetIntoVehicle(heli, VehicleSeat.Any);
-				gunner.FiringPattern = fp;
+				gunner.FiringPattern = FiringPattern.FullAuto;
+
+				// give the gunner weapons & sidearm
 				gunner.Weapons.Give(weapon, 9999, true, true);
+				gunner.Weapons.Give(sidearm, 9999, true, true);
+
+				// set the gunner to fight
 				gunner.Task.FightAgainstHatedTargets(50000);
 				gunner.AlwaysKeepTask = true;
 			}
@@ -221,11 +257,11 @@ namespace GFPS
 
 
 
-	public enum SupportHeliModel : uint 
+	public enum SupportHeliModel : int 
 	{
-		Akula = 1181327175u,
-		Valkyrie = 2694714877u,
-		Buzzard = 788747387u,
+		Akula = 0x46699F47,
+		Valkyrie = -1600252419,
+		Buzzard = 0x2F03547B,
 	}
 }
 
