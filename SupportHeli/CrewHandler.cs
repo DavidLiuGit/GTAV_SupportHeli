@@ -13,7 +13,7 @@ namespace GFPS
 	class CrewHandler
 	{
 		#region groundCrew
-		static float regroupThreshold = 15.0f;
+		static float regroupThreshold = 12.5f;
 
 		/// <summary>
 		/// 
@@ -34,11 +34,18 @@ namespace GFPS
 
 				// calculate 
 				case GroundCrewAction.Regrouping:
-					if (playerPos.DistanceTo(gunner.Position) > regroupThreshold){
+					if (playerPos.DistanceTo(gunner.Position) > 2 * regroupThreshold)
+					{
 						gunner.BlockPermanentEvents = true;
 						gunner.Task.RunTo(playerPos);
 					}
-					else {
+					else if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
+					{
+						gunner.BlockPermanentEvents = false;
+						gunner.Task.GoTo(playerPos);
+					}
+					else
+					{
 						gunner.BlockPermanentEvents = false;
 						gunner.Task.FightAgainstHatedTargets(50000);
 						newAction = GroundCrewAction.Fighting;
@@ -60,6 +67,58 @@ namespace GFPS
 			return groundGunnerHandler(entry.Key, entry.Value);
 		}
 
+
+		public static void giveGroundCrewGuns(Ped crew, GroundCrewRole role)
+		{
+			// give the ground crew member sidearms
+			foreach (WeaponHash sa in sidearms)
+				crew.Weapons.Give(sa, 9999, true, true);
+
+			// give the ground crew member primary weapons for their role
+			WeaponHash[] primaryWeapons = weaponsOfRoles[role];
+			foreach (WeaponHash wp in primaryWeapons)
+				crew.Weapons.Give(wp, 9999, true, true);
+		}
+		#endregion
+
+
+
+
+		#region lookupTables
+		// declare the weapons that ground crew of each role will be assigned
+		public static Dictionary<GroundCrewRole, WeaponHash[]> weaponsOfRoles = new Dictionary<GroundCrewRole, WeaponHash[]>()
+		{
+			{ 
+				GroundCrewRole.Assault, 
+				new WeaponHash[] {
+					WeaponHash.SpecialCarbine, WeaponHash.AssaultRifle, WeaponHash.AdvancedRifle, WeaponHash.CarbineRifle
+				}
+			},
+			{
+				GroundCrewRole.Demolition,
+				new WeaponHash[] {
+					WeaponHash.CombatMG, WeaponHash.MG, WeaponHash.AssaultShotgun, WeaponHash.PumpShotgun
+				}
+			},
+			{
+				GroundCrewRole.Marksman,
+				new WeaponHash[] {
+					 WeaponHash.Revolver, WeaponHash.SniperRifle, WeaponHash.MarksmanRifle, WeaponHash.HeavySniper,
+				}
+			},
+			{
+				GroundCrewRole.SpecOps,
+				new WeaponHash[] {
+					WeaponHash.SMG, WeaponHash.AssaultSMG, WeaponHash.MiniSMG, WeaponHash.MicroSMG
+				}
+			}
+		};
+
+		public static WeaponHash[] sidearms = new WeaponHash[] {
+			WeaponHash.SwitchBlade, WeaponHash.Knife, 
+			WeaponHash.SNSPistol, WeaponHash.HeavyPistol, WeaponHash.Pistol50, WeaponHash.CombatPistol, WeaponHash.APPistol,
+			 
+		};
 		#endregion
 	}
 
@@ -70,5 +129,13 @@ namespace GFPS
 		Descending,
 		Regrouping,
 		Fighting,
+	}
+
+
+	public enum GroundCrewRole {
+		Assault,
+		Demolition,
+		Marksman,
+		SpecOps
 	}
 }

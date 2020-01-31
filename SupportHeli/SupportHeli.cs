@@ -49,7 +49,11 @@ namespace GFPS
 
 		private void onKeyDown(object sender, KeyEventArgs e)
 		{
-			if (e.KeyCode == activateKey)
+			if (e.KeyCode == activateKey && e.Modifiers == Keys.Control)
+			{
+				// spawn police maverick
+			}
+			else if (e.KeyCode == activateKey)
 			{
 				// if no heli is active, spawn a heli and its crew
 				if (!heliActive)
@@ -71,7 +75,7 @@ namespace GFPS
 
 
 		int iTick = 0;
-		int N = 100;
+		int N = 250;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
@@ -297,8 +301,9 @@ namespace GFPS
 			// make sure there are gunners in the gunner seats
 			Ped[] gunners = spawnGunners(heli, 2, heliRelGroup, gunnerSeats);
 
-
-
+			// create a RNG
+			Random rng = new Random();
+			
 			foreach (Ped gunner in gunners)
 			{
 				// add each gunner to the player's PedGroup
@@ -307,8 +312,12 @@ namespace GFPS
 
 				// make gunner rappel
 				gunner.Task.RappelFromHelicopter();
-
 				groundCrew.Add(gunner, GroundCrewAction.Descending);
+
+				// generate a random role for the ground crew gunner, and give guns accordingly
+				Array roles = Enum.GetValues(typeof(GroundCrewRole));
+				GroundCrewRole randomRole = (GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length));
+				CrewHandler.giveGroundCrewGuns(gunner, randomRole);
 			}
 		}
 
