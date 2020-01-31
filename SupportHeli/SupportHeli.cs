@@ -55,20 +55,22 @@ namespace GFPS
 			}
 			else if (e.KeyCode == activateKey)
 			{
-				// if no heli is active, spawn a heli and its crew
-				if (!heliActive)
-				{
-					supportHeli = spawnSupportHeli(heliModel, supportHeliHeight, haloRadius, heliBulletProof);
-					spawnNpcsIntoHeli(supportHeli, heliModel, fPatt);
-					GTA.UI.Notification.Show("Support heli and crew spawned.");
-				}
+				atkheli.spawnMannedHeli();
 
-				// if a heli is already active, spawn gunners and let them rappel down
-				else
-				{
-					gunnersRappelDown(supportHeli);
-					GTA.UI.Notification.Show("Gunners rappeling.");
-				}
+				//// if no heli is active, spawn a heli and its crew
+				//if (!heliActive)
+				//{
+				//	supportHeli = spawnSupportHeli(heliModel, supportHeliHeight, haloRadius, heliBulletProof);
+				//	spawnNpcsIntoHeli(supportHeli, heliModel, fPatt);
+				//	GTA.UI.Notification.Show("Support heli and crew spawned.");
+				//}
+
+				//// if a heli is already active, spawn gunners and let them rappel down
+				//else
+				//{
+				//	gunnersRappelDown(supportHeli);
+				//	GTA.UI.Notification.Show("Gunners rappeling.");
+				//}
 			}
 		}
 
@@ -88,32 +90,7 @@ namespace GFPS
 
 
 			// manipulate the heli if it is active
-			if (heliActive)
-			{
-				// if heli is destroyed (undriveable), delete its blip and set heliActive to false
-				if (!supportHeli.IsDriveable)
-					cleanUp(false);
-
-				try
-				{
-					// make the driver chase to player's offset
-					supportHeli.Driver.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
-					supportHeli.Driver.AlwaysKeepTask = true;
-
-					// handle ground crew actions
-					var keys = groundCrew.Keys;
-					for (int i = 0; i < keys.Count; i++ )
-					{
-						Ped key = keys.ElementAt(i);
-						groundCrew[key] = CrewHandler.groundGunnerHandler(key, groundCrew[key]);
-					}
-				}
-				catch
-				{
-					cleanUp(sender, e);
-					throw;
-				}
-			}
+			atkheli.flyToPlayer();
 		}
 
 
@@ -121,7 +98,7 @@ namespace GFPS
 
 
 		bool heliActive = false;
-		SupportHeliModel heliModel;
+		HeliModel heliModel;
 		Vehicle supportHeli;
 		float haloRadius = 20.0f;
 		float supportHeliHeight = 40.0f;
@@ -131,7 +108,7 @@ namespace GFPS
 		const WeaponHash defaultSidearm = WeaponHash.CombatPistol;
 		RelationshipGroup heliRelGroup;
 
-		public Vehicle spawnSupportHeli(SupportHeliModel model, float height, float radius, bool bulletProof)
+		public Vehicle spawnSupportHeli(HeliModel model, float height, float radius, bool bulletProof)
 		{
 			// if a heli is already active, return immediately
 			if (heliActive)
@@ -141,7 +118,7 @@ namespace GFPS
 			}
 
 			// determine player position
-			Vector3 heliPos = Game.Player.Character.Position + getOffsetVector3(70f, radius);
+			Vector3 heliPos = Game.Player.Character.Position + Helper.getOffsetVector3(70f, radius);
 
 			// spawn a heli
 			Vehicle heli = World.CreateVehicle((Model)((int)model), heliPos);
@@ -162,7 +139,7 @@ namespace GFPS
 
 
 		FiringPattern fPatt = FiringPattern.FullAuto;
-		private void spawnNpcsIntoHeli(Vehicle heli, SupportHeliModel model, FiringPattern fp)
+		private void spawnNpcsIntoHeli(Vehicle heli, HeliModel model, FiringPattern fp)
 		{
 			// spawn pilot & set into heli
 			Ped pilot = World.CreatePed(PedHash.Pilot01SMY, nullVector3);
@@ -175,7 +152,7 @@ namespace GFPS
 
 			// task pilot with chasing player with heli always
 			Vector3 playerPos = Game.Player.Character.Position;
-			pilot.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
+			pilot.Task.ChaseWithHelicopter(Game.Player.Character, Helper.getOffsetVector3(supportHeliHeight, haloRadius));
 			pilot.AlwaysKeepTask = true;
 
 			// give pilot sidearm
@@ -184,16 +161,16 @@ namespace GFPS
 			// if multi-seat heli, spawn more shooters
 			switch (model)
 			{
-				case SupportHeliModel.Akula:
+				case HeliModel.Akula:
 					spawnCopilot(heli, heliRelGroup);
 					break;
 
-				case SupportHeliModel.Valkyrie:
+				case HeliModel.Valkyrie:
 					spawnCopilot(heli, heliRelGroup);
 					spawnGunners(heli, 2, heliRelGroup, gunnerSeats);
 					break;
 
-				case SupportHeliModel.Buzzard:
+				case HeliModel.Buzzard:
 					spawnGunners(heli, 2, heliRelGroup, gunnerSeats);
 					break;
 			}
@@ -264,32 +241,28 @@ namespace GFPS
 		}
 
 
-
-		private Vector3 getOffsetVector3 (float height, float haloRadius = 0.0f){
-			float x = 0.0f, y = 0.0f;
-
-			// if haloRadius is > 0.0, then randomly generate x & y within the radius
-			if (haloRadius > 0.0f){
-				Random rand = new Random();
-				double x2 = rand.NextDouble() * haloRadius * haloRadius;			// 0.0 < x^2 < haloRadius^2
-				double y2 = Math.Pow(haloRadius, 2.0f) - x2;						// y^2 = haloRadius^2 - x^2
-				x = (float) Math.Sqrt(x2);
-				y = (float) Math.Sqrt(y2);
-			}
-
-			return new Vector3(x, y, height);
-		}
+		// instances of Heli to track
+		Attackheli atkheli;
 
 
+
+		/// <summary>
+		/// Read settings from INI file and instantiate necessary data structures with the settings.
+		/// </summary>
+		private void readSettings (bool verbose = true) {
+			// read in general settings
+			string sec = "General";
+			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey", sec) ?? "F10");
+			
+			// read in settings for Attack Heli
+			sec = "AttackHeli";
+			atkheli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec) );
 		
-		private void readSettings () {
-			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey") ?? "F10");
-			heliModel = (SupportHeliModel)Enum.Parse(typeof(SupportHeliModel), ini.Read("heliModel") ?? "Akula");
-			supportHeliHeight = float.Parse(ini.Read("height") ?? "40.0");
-			haloRadius = float.Parse(ini.Read("radius") ?? "20.0");
-			heliBulletProof = int.Parse(ini.Read("bulletproof") ?? "1") > 0 ? true : false;
-
-			GTA.UI.Notification.Show("Heli: " + heliModel + "~n~Height: " + supportHeliHeight + "~n~Radius: " + haloRadius);
+			// debug printouts
+			if (verbose)
+			{
+				GTA.UI.Notification.Show(atkheli.getSettingsString());
+			}
 		}
 
 
@@ -325,47 +298,20 @@ namespace GFPS
 
 		private Vector3 getVector3NearPlayer (float radius = 2.0f)
 		{
-			return getOffsetVector3(0.0f, radius);
+			return Helper.getOffsetVector3(0.0f, radius);
 		}
 
 
 
 		private void cleanUp(object sender, EventArgs e)
 		{
-			cleanUp(true);
-		}
-
-
-		private void cleanUp(bool deleteHeli)
-		{
-			heliActive = false;
-			try
-			{
-				supportHeli.AttachedBlip.Delete();
-
-				// if deleteHeli flag is true, then delete all occupants and the heli itself
-				if (deleteHeli)
-				{
-					foreach (Ped occupant in supportHeli.Occupants)
-						occupant.Delete();
-					supportHeli.Delete();
-				}
-
-			}
-			catch { }
+			atkheli.destructor(true);
 		}
 	}
 
 
 
-	public enum SupportHeliModel : int 
-	{
-		Akula = 0x46699F47,
-		Valkyrie = -1600252419,
-		Buzzard = 0x2F03547B,
-		Maverick = -1660661558,
-		Polmav = 353883353,
-	}
+
 }
 
 

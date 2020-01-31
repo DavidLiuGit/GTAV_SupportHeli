@@ -97,13 +97,13 @@ namespace GFPS
 			{
 				GroundCrewRole.Demolition,
 				new WeaponHash[] {
-					WeaponHash.CombatMG, WeaponHash.MG, WeaponHash.AssaultShotgun, WeaponHash.PumpShotgun
+					WeaponHash.AssaultShotgun, WeaponHash.PumpShotgun, WeaponHash.MG, WeaponHash.CombatMG,
 				}
 			},
 			{
 				GroundCrewRole.Marksman,
 				new WeaponHash[] {
-					 WeaponHash.Revolver, WeaponHash.SniperRifle, WeaponHash.MarksmanRifle, WeaponHash.HeavySniper,
+					 WeaponHash.Revolver, WeaponHash.SniperRifle, WeaponHash.HeavySniper, WeaponHash.MarksmanRifle,
 				}
 			},
 			{
@@ -129,6 +129,7 @@ namespace GFPS
 		Descending,
 		Regrouping,
 		Fighting,
+		Gathering,
 	}
 
 
