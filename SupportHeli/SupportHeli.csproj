@@ -47,6 +47,7 @@
     <Compile Include="..\..\lap_timer\LapTimer\iniReader.cs">
       <Link>iniReader.cs</Link>
     </Compile>
+    <Compile Include="CrewHandler.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
