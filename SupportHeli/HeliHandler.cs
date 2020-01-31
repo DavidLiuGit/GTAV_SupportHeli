@@ -20,7 +20,8 @@ namespace GFPS
 
 		// flags 
 		protected bool isAttackHeli;
-		protected bool isActive = false;
+		public bool isActive = false;
+		protected bool canRappel = false;
 
 		// consts
 		protected const float initialHeight = 70.0f;
@@ -221,6 +222,11 @@ namespace GFPS
 		/// <returns></returns>
 		protected Ped spawnCrewGunner(VehicleSeat seat, WeaponHash[] weaponArray)
 		{
+			// if seat is occupied, delete the NPC in the seat
+			Ped seatOccupant = heli.GetPedOnSeat(seat);
+			if (seatOccupant != null)
+				seatOccupant.Delete();
+
 			// spawn the gunner into the specified seat
 			Ped gunner = heli.CreatePedOnSeat(seat, PedHash.Blackops01SMY);
 
@@ -242,6 +248,19 @@ namespace GFPS
 
 
 
+		protected bool determineCanRappel () {
+			switch (model)
+			{
+				case HeliModel.Maverick:
+				case HeliModel.Polmav:
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+
 		#region virtualHelpers
 		/// <summary>
 		/// Based on the model of the heli, spawn in the required personel.
@@ -259,7 +278,7 @@ namespace GFPS
 
 	public class Attackheli : Heli
 	{
-		// by default, give each (non-copilot) gunner 
+		// by default, give each (non-copilot) gunner assault weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
 
 		public Attackheli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
@@ -287,6 +306,38 @@ namespace GFPS
 				case HeliModel.Buzzard:
 				default:
 					// spawn a pair of rear-door gunners
+					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
+					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
+					break;
+			}
+
+			return newCrew.ToArray<Ped>();
+		}
+	}
+
+
+
+	public class SupportHeli : Heli
+	{
+		// by default, give each (non-copilot) gunner heavy weapons
+		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
+
+		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
+			base(iniName, iniHeight, iniRadius, iniBulletproof)
+		{ 
+			isAttackHeli = false;
+		}
+
+
+		protected override Ped[] spawnCrewIntoHeli()
+		{
+			List<Ped> newCrew = new List<Ped>();
+
+			switch (model)
+			{
+				case HeliModel.Polmav:
+				case HeliModel.Maverick:
+				default:
 					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
 					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
 					break;
