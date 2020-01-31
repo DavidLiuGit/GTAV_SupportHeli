@@ -32,6 +32,7 @@ namespace GFPS
 			KeyDown += onKeyDown;
 			Interval = 1;
 			Tick += onNthTick;
+			Aborted += cleanUp;
 		}
 
 
@@ -75,17 +76,17 @@ namespace GFPS
 			{
 				// if heli is destroyed (undriveable), delete its blip and set heliActive to false
 				if (!supportHeli.IsDriveable)
-					cleanUp();
+					cleanUp(sender, e);
 
-				// make the driver chase to player's offset
 				try
 				{
+					// make the driver chase to player's offset
 					supportHeli.Driver.Task.ChaseWithHelicopter(Game.Player.Character, getOffsetVector3(supportHeliHeight, haloRadius));
 					supportHeli.Driver.AlwaysKeepTask = true;
 				}
 				catch
 				{
-					cleanUp();
+					cleanUp(sender, e);
 				}
 			}
 		}
@@ -103,6 +104,7 @@ namespace GFPS
 		bool heliBulletProof = true;
 		const WeaponHash defaultPrimary = WeaponHash.AdvancedRifle;
 		const WeaponHash defaultSidearm = WeaponHash.CombatPistol;
+		RelationshipGroup heliRelGroup;
 
 		public Vehicle spawnSupportHeli(SupportHeliModel model, float height, float radius, bool bulletProof)
 		{
@@ -125,6 +127,7 @@ namespace GFPS
 			
 			// activate engine & freeze the entity so it doesn't fall
 			heli.IsEngineRunning = true;
+			heli.LandingGearState = VehicleLandingGearState.Retracted;
 
 			// mark support heli as active and return the vehicle instance
 			heliActive = true;
@@ -140,9 +143,10 @@ namespace GFPS
 			Ped pilot = World.CreatePed(PedHash.Pilot01SMY, nullVector3);
 			pilot.SetIntoVehicle(heli, VehicleSeat.Driver);
 
-			// add pilot to player's RelationshipGroup
-			RelationshipGroup playerRelGroup = Game.Player.Character.RelationshipGroup;
-			pilot.RelationshipGroup = playerRelGroup;
+			// create a heli RelationshipGroup and add pilot to it; make heli and player's group allies
+			heliRelGroup = World.AddRelationshipGroup("heliGroup");
+			pilot.RelationshipGroup = heliRelGroup;
+			heliRelGroup.SetRelationshipBetweenGroups(Game.Player.Character.RelationshipGroup, Relationship.Companion, true);
 
 			// task pilot with chasing player with heli always
 			Vector3 playerPos = Game.Player.Character.Position;
@@ -156,15 +160,17 @@ namespace GFPS
 			switch (model)
 			{
 				case SupportHeliModel.Akula:
-					spawnGunners(heli, (int)model, 0);
+					spawnCopilot(heli, heliRelGroup);
+					spawnGunners(heli, model, heliRelGroup);
 					break;
 
 				case SupportHeliModel.Valkyrie:
-					spawnGunners(heli, (int) model, 2, WeaponHash.AdvancedRifle);
+					spawnCopilot(heli, heliRelGroup);
+					spawnGunners(heli, model, heliRelGroup, WeaponHash.AdvancedRifle);
 					break;
 
 				case SupportHeliModel.Buzzard:
-					spawnGunners(heli, (int) model, 2, WeaponHash.AdvancedRifle);
+					spawnGunners(heli, model, heliRelGroup, WeaponHash.AdvancedRifle);
 					break;
 
 			}
@@ -172,18 +178,14 @@ namespace GFPS
 
 
 
-		private void spawnGunners(Vehicle heli, int model, int num, WeaponHash weapon = defaultPrimary, WeaponHash sidearm = WeaponHash.CombatPistol)
+		private void spawnCopilot(Vehicle heli, RelationshipGroup rg, WeaponHash sidearm = defaultSidearm)
 		{
-			// spawn copilot if needed
-			if (model == (int) SupportHeliModel.Akula || model == (int) SupportHeliModel.Valkyrie)
-			{
 				// spawn copilot & set into heli
 				Ped coplt = World.CreatePed(PedHash.Pilot02SMM, nullVector3);
 				coplt.SetIntoVehicle(heli, VehicleSeat.Passenger);
 
 				// set relationship group to player's group
-				RelationshipGroup playerRelGroup = Game.Player.Character.RelationshipGroup;
-				coplt.RelationshipGroup = playerRelGroup;
+				coplt.RelationshipGroup = rg;
 				Game.Player.Character.PedGroup.Add(coplt, false);
 
 				// give copilot sidearm
@@ -192,26 +194,37 @@ namespace GFPS
 				// task copilot with shooting baddies
 				coplt.Task.FightAgainstHatedTargets(50000);
 				coplt.AlwaysKeepTask = true;
+		}
 
-				// set copilot firing mode, depending on the model
-				if (model == (int)SupportHeliModel.Akula) coplt.FiringPattern = FiringPattern.FullAuto;
-				else if (model == (int)SupportHeliModel.Valkyrie) coplt.FiringPattern = FiringPattern.BurstFireHeli;
+
+
+		private void spawnGunners(Vehicle heli, SupportHeliModel model, RelationshipGroup rg, WeaponHash weapon = defaultPrimary, WeaponHash sidearm = WeaponHash.CombatPistol)
+		{
+			// determine how many gunners are needed
+			int numGunners = 0;
+			switch (model){
+				case SupportHeliModel.Buzzard:
+				case SupportHeliModel.Valkyrie:
+					numGunners = 2;
+					break;
 			}
 
-
 			// spawn gunners
-			for (int i = 0; i < num; i++)
+			for (int i = 0; i < numGunners; i++)
 			{
 				// spawn the gunner and put into a seat
 				Ped gunner = World.CreatePed(PedHash.Blackops01SMY, nullVector3);
 				gunner.SetIntoVehicle(heli, VehicleSeat.Any);
-				gunner.FiringPattern = FiringPattern.FullAuto;
+
+				// add to heli RelationshipGroup
+				gunner.RelationshipGroup = rg;
 
 				// give the gunner weapons & sidearm
 				gunner.Weapons.Give(weapon, 9999, true, true);
 				gunner.Weapons.Give(sidearm, 9999, true, true);
 
 				// set the gunner to fight
+				gunner.FiringPattern = FiringPattern.FullAuto;
 				gunner.Task.FightAgainstHatedTargets(50000);
 				gunner.AlwaysKeepTask = true;
 			}
@@ -225,8 +238,8 @@ namespace GFPS
 			// if haloRadius is > 0.0, then randomly generate x & y within the radius
 			if (haloRadius > 0.0f){
 				Random rand = new Random();
-				double x2 = rand.NextDouble() * haloRadius * haloRadius;			// 0.0 < x < haloRadius^2
-				double y2 = Math.Pow(haloRadius, 2.0f) - x2;						// y = haloRadius^2 - x
+				double x2 = rand.NextDouble() * haloRadius * haloRadius;			// 0.0 < x^2 < haloRadius^2
+				double y2 = Math.Pow(haloRadius, 2.0f) - x2;						// y^2 = haloRadius^2 - x^2
 				x = (float) Math.Sqrt(x2);
 				y = (float) Math.Sqrt(y2);
 			}
@@ -248,11 +261,19 @@ namespace GFPS
 
 
 
-		private void cleanUp()
+		private void cleanUp(object sender, EventArgs e)
 		{
 			heliActive = false;
-			supportHeli.AttachedBlip.Delete();
+			try
+			{
+				supportHeli.AttachedBlip.Delete();
+				supportHeli.Delete();
+			}
+			catch {}
 		}
+
+
+
 	}
 
 
