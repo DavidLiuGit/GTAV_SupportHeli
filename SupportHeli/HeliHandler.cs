@@ -21,6 +21,7 @@ namespace GFPS
 		// flags 
 		protected bool isAttackHeli;
 		public bool isActive = false;
+		public bool pilotHoldPosition = false;
 		protected bool canRappel = false;
 
 		// consts
@@ -33,6 +34,7 @@ namespace GFPS
 		public Ped pilot;
 		public Ped[] passengers;
 		public RelationshipGroup rg;
+		protected Random rng = new Random();
 
 
 
@@ -136,8 +138,8 @@ namespace GFPS
 		/// Perform pre-flight checks, then task the pilot with flying to the player's location.
 		/// </summary>
 		public void flyToPlayer() {
-			// if heli is not active, do nothing
-			if (!isActive)
+			// if heli is not active or pilot is being instructed to hold position, do nothing
+			if (!isActive || pilotHoldPosition)
 				return;
 
 			// if heli is not driveable or the pilot is no longer in the heli
@@ -159,6 +161,18 @@ namespace GFPS
 				throw;
 			}
 
+		}
+
+
+
+		/// <summary>
+		/// Task pilot with holding a position, instead of "orbitting" the player as normal.
+		/// </summary>
+		public void holdPositionAbovePlayer()
+		{
+			pilot.AlwaysKeepTask = false;
+			Vector3 positionToHold = Game.Player.Character.Position + Helper.getOffsetVector3(height, radius);
+			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
 		}
 		#endregion
 
@@ -327,6 +341,39 @@ namespace GFPS
 		{ 
 			isAttackHeli = false;
 		}
+
+
+		/// <summary>
+		/// Spawn and task 2 ground crew NPCs to rappel down from the SupportHeli. If no <c>GroundCrewRole</c>
+		/// is specified, one will be chosen at random.
+		/// </summary>
+		/// <returns>Array of <c>Ped</c></returns>
+		public Ped[] groundCrewRappelDown()
+		{
+			Array roles = Enum.GetValues(typeof(GroundCrewRole));
+			return groundCrewRappelDown((GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length)));
+		}
+
+
+		public Ped[] groundCrewRappelDown(GroundCrewRole role)
+		{
+			// instruct pilot to hold position
+			pilotHoldPosition = true;
+			holdPositionAbovePlayer();
+
+			// make sure there are gunners in the gunner seats
+			Ped[] newGroundCrew = new Ped[2] {
+				spawnCrewGunner(VehicleSeat.LeftRear, CrewHandler.weaponsOfRoles[role]),
+				spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
+			};
+
+			// instruct gunners to rappel
+			foreach (Ped crew in newGroundCrew)
+				crew.Task.RappelFromHelicopter();
+
+			return newGroundCrew;
+		}
+
 
 
 		protected override Ped[] spawnCrewIntoHeli()

@@ -97,19 +97,25 @@ namespace GFPS
 			{
 				GroundCrewRole.Demolition,
 				new WeaponHash[] {
-					WeaponHash.AssaultShotgun, WeaponHash.PumpShotgun, WeaponHash.MG, WeaponHash.CombatMG,
+					WeaponHash.MicroSMG, WeaponHash.Gusenberg, WeaponHash.MG, WeaponHash.CombatMG,
 				}
 			},
-			{
-				GroundCrewRole.Marksman,
-				new WeaponHash[] {
-					 WeaponHash.Revolver, WeaponHash.SniperRifle, WeaponHash.HeavySniper, WeaponHash.MarksmanRifle,
-				}
-			},
+			//{
+			//	GroundCrewRole.Marksman,
+			//	new WeaponHash[] {
+			//		 WeaponHash.Revolver, WeaponHash.SniperRifle, WeaponHash.HeavySniper, WeaponHash.MarksmanRifle,
+			//	}
+			//},
 			{
 				GroundCrewRole.SpecOps,
 				new WeaponHash[] {
-					WeaponHash.SMG, WeaponHash.AssaultSMG, WeaponHash.MiniSMG, WeaponHash.MicroSMG
+					WeaponHash.SMG, WeaponHash.AssaultSMG, WeaponHash.MiniSMG, WeaponHash.CombatPDW
+				}
+			},
+			{
+				GroundCrewRole.Breacher,
+				new WeaponHash[] {
+					 WeaponHash.PumpShotgun, WeaponHash.SweeperShotgun, WeaponHash.HeavyShotgun, WeaponHash.AssaultShotgun
 				}
 			}
 		};
@@ -136,7 +142,38 @@ namespace GFPS
 	public enum GroundCrewRole {
 		Assault,
 		Demolition,
-		Marksman,
-		SpecOps
+		//Marksman,
+		SpecOps,
+		Breacher
+	}
+
+
+	public class GroundCrewSettings
+	{
+		// creation-time settings
+		public PedHash[] modelArray = new PedHash[1] { PedHash.Blackops01SMY };
+		public bool drawBlip = false;
+
+		// behavior settings
+		public float regroupThreshold = 15.0f;
+
+		// settings that can be applied to Peds
+		public int health = 1000;
+		public bool isInvincible = false;
+		public bool canRagdoll = false;
+		public WeaponHash sidearm = WeaponHash.Pistol;
+
+
+		/// <summary>
+		/// Apply all applicable settings to the specified Ped
+		/// </summary>
+		/// <param name="npc">Target Ped</param>
+		public void applySettingsToPed(Ped npc)
+		{
+			npc.Health = health;
+			npc.IsInvincible = isInvincible;
+			npc.CanRagdoll = canRagdoll;
+			npc.Weapons.Give(sidearm, 9999, false, true);
+		}
 	}
 }

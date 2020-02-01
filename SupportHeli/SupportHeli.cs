@@ -56,24 +56,18 @@ namespace GFPS
 					supportHeli.spawnMannedHeli();
 				
 				// otherwise, task gunners with rappeling down
+				gunnersRappelDown();
 			}
 			else if (e.KeyCode == activateKey)
 			{
 				attackHeli.spawnMannedHeli();
-				
-				//// if a heli is already active, spawn gunners and let them rappel down
-				//else
-				//{
-				//	gunnersRappelDown(supportHeli);
-				//	GTA.UI.Notification.Show("Gunners rappeling.");
-				//}
 			}
 		}
 
 
 
 		int iTick = 0;
-		int N = 250;
+		int N = 400;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
@@ -88,63 +82,20 @@ namespace GFPS
 			// manipulate the heli if it is active
 			attackHeli.flyToPlayer();
 			supportHeli.flyToPlayer();
+
+			// handle ground crew actions
+			updateGroundCrewActions();
 		}
 
 
 		readonly Vector3 nullVector3 = new Vector3(0f, 0f, 0f);
 		const WeaponHash defaultPrimary = WeaponHash.SpecialCarbine;
 		const WeaponHash defaultSidearm = WeaponHash.CombatPistol;
-		RelationshipGroup heliRelGroup;
-
-		
-
-		VehicleSeat[] gunnerSeats = new VehicleSeat[2] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
-		private Ped[] spawnGunners(Vehicle heli, int numGunners, RelationshipGroup rg, VehicleSeat[] seats, WeaponHash weapon = defaultPrimary, WeaponHash sidearm = WeaponHash.CombatPistol)
-		{
-			Ped[] ret = new Ped[numGunners];
-
-			// spawn gunners as needed
-			for (int i = 0; i < numGunners; i++)
-			{
-				// spawn the gunner and put into a seat; if seat is occupied, add the Ped to the array
-				Ped seatOccupant = heli.GetPedOnSeat(seats[i]);
-				if (seatOccupant != null) seatOccupant.Delete();
-				Ped gunner = World.CreatePed(PedHash.Blackops01SMY, getVector3NearPlayer());
-
-				// get the gunner into the player's PedGroup; make sure player is the group's leader
-				PedGroup playerPg = Game.Player.Character.PedGroup;
-				Function.Call(Hash.SET_PED_AS_GROUP_LEADER, Game.Player.Character, playerPg);
-				playerPg.Add(gunner, false);
-				Function.Call(Hash.SET_PED_CAN_TELEPORT_TO_GROUP_LEADER, gunner.Handle, playerPg.Handle, true);
-				gunner.NeverLeavesGroup = true;
-
-				// put the gunner into a heli seat
-				gunner.SetIntoVehicle(heli, seats[i]);
-
-				// add to heli RelationshipGroup
-				gunner.RelationshipGroup = rg;
-
-				// give the gunner weapons & sidearm
-				gunner.Weapons.Give(weapon, 9999, true, true);
-				gunner.Weapons.Give(sidearm, 9999, true, true);
-
-				// set the gunner to fight
-				gunner.FiringPattern = FiringPattern.FullAuto;
-				gunner.Task.FightAgainstHatedTargets(50000);
-				gunner.AlwaysKeepTask = true;
-
-				// add the new gunner to return array
-				ret[i] = gunner;
-			}
-
-			return ret;
-		}
 
 
 		// instances of Heli to track
 		Attackheli attackHeli;
 		SupportHeli supportHeli;
-
 
 		/// <summary>
 		/// Read settings from INI file and instantiate necessary data structures with the settings.
@@ -176,40 +127,39 @@ namespace GFPS
 
 		Dictionary<Ped, GroundCrewAction> groundCrew = new Dictionary<Ped, GroundCrewAction>(101);
 
-		private void gunnersRappelDown(Vehicle heli, int health = 1000, bool canRagdoll = false)
+		/// <summary>
+		/// When prompted by user, spawn ground crew and instruct them to rappel from the SupportHeli
+		/// </summary>
+		private void gunnersRappelDown()
 		{
 			// make sure there are gunners in the gunner seats
-			Ped[] gunners = spawnGunners(heli, 2, heliRelGroup, gunnerSeats);
-
-			// create a RNG
-			Random rng = new Random();
+			Ped[] crew = supportHeli.groundCrewRappelDown();
 			
-			foreach (Ped gunner in gunners)
-			{
-				// add each gunner to the player's PedGroup
-				gunner.CanRagdoll = canRagdoll;
-				gunner.Health = health;
-
-				// make gunner rappel
-				gunner.Task.RappelFromHelicopter();
+			foreach (Ped gunner in crew)
 				groundCrew.Add(gunner, GroundCrewAction.Descending);
-
-				// generate a random role for the ground crew gunner, and give guns accordingly
-				Array roles = Enum.GetValues(typeof(GroundCrewRole));
-				GroundCrewRole randomRole = (GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length));
-				CrewHandler.giveGroundCrewGuns(gunner, randomRole);
-			}
 		}
 
 
-
-		private Vector3 getVector3NearPlayer (float radius = 2.0f)
+		private void updateGroundCrewActions()
 		{
-			return Helper.getOffsetVector3(0.0f, radius);
+			bool crewRappeling = false;
+
+			// iterate over each groundCrew that is being tracked
+			var crew = groundCrew.Keys;
+			for (int i = 0; i < crew.Count; i++)
+			{
+				Ped p = crew.ElementAt(i);
+				GroundCrewAction newAction = CrewHandler.groundGunnerHandler(crew.ElementAt(i), groundCrew[p]);
+				if (newAction == GroundCrewAction.Descending) crewRappeling = true;
+				groundCrew[p] = newAction;
+			}
+
+			// if no ground crew members are rappeling anymore
+			if (!crewRappeling)
+				supportHeli.pilotHoldPosition = false;
 		}
 
-
-
+		
 		private void cleanUp(object sender, EventArgs e)
 		{
 			attackHeli.destructor(true);
