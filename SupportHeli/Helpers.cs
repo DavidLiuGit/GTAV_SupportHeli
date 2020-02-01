@@ -23,7 +23,7 @@ namespace GFPS
 		{
 			float x = 0.0f, y = 0.0f;
 
-			// if haloRadius is > 0.0, then randomly generate x & y within the radius
+			// randomly generate the magnitude of x & y
 			if (haloRadius > 0.0f)
 			{
 				double x2 = rng.NextDouble() * haloRadius * haloRadius;			// 0.0 < x^2 < haloRadius^2
@@ -32,7 +32,16 @@ namespace GFPS
 				y = (float)Math.Sqrt(y2);
 			}
 
-			return new Vector3(x, y, height);
+			// randomly determine the signs of x & y, based on quadrant
+			int quadrant = rng.Next(4);
+			switch (quadrant)
+			{
+				case 0: return new Vector3(x, y, height);
+				case 1: return new Vector3(x, -y, height);
+				case 2: return new Vector3(-x, y, height);
+				case 3: default: return new Vector3(-x, -y, height);		// add default so all code-paths have return value
+			}
+			
 		}
 
 

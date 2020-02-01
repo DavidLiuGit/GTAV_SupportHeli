@@ -17,7 +17,8 @@ namespace GFPS
 		#region groundCrew
 		// NPC must be within regroupThreshold * assembleMultiplier to be finished assembling
 		static float regroupThreshold = 12.5f;
-		static float assembleMultiplier = 0.55f;		
+		static float assembleMultiplier = 0.55f;
+
 
 		/// <summary>
 		/// 
@@ -62,7 +63,8 @@ namespace GFPS
 					{
 						gunner.Task.FightAgainstHatedTargets(50000);
 						nextAction = GroundCrewAction.Fighting;
-					}
+					} else
+						gunner.Task.RunTo(Helper.getVector3NearTarget(0.3f * regroupThreshold, playerPos));
 					break;
 			}
 
@@ -103,10 +105,7 @@ namespace GFPS
 
 		public static void assembleNearPlayer(Dictionary<Ped, GroundCrewAction> groundCrew)
 		{
-			Random rng = new Random();
 			Vector3 playerPos = Game.Player.Character.Position;
-
-			GTA.UI.Notification.Show(groundCrew.Count + " attempting to reassemble");
 
 			// iterate over ground crew
 			foreach (Ped p in groundCrew.Keys.ToArray())

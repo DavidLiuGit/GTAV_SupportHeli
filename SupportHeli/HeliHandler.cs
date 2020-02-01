@@ -248,9 +248,7 @@ namespace GFPS
 			gunner.RelationshipGroup = rg;
 
 			// give crew weapons in weaponArray, plus a standard issue sidearm
-			gunner.Weapons.Give(sidearm, 9999, true, true);
-			foreach (WeaponHash weapon in weaponArray)
-				gunner.Weapons.Give(weapon, 9999, true, true);
+			giveWeapons(gunner, weaponArray);
 
 			// task crew with fighting any enemies
 			gunner.FiringPattern = fp;
@@ -263,16 +261,10 @@ namespace GFPS
 
 
 
-		protected bool determineCanRappel () {
-			switch (model)
-			{
-				case HeliModel.Maverick:
-				case HeliModel.Polmav:
-					return true;
-
-				default:
-					return false;
-			}
+		protected virtual void giveWeapons (Ped crew, WeaponHash[] weaponArray) {
+			crew.Weapons.Give(sidearm, 9999, true, true);
+			foreach (WeaponHash weapon in weaponArray)
+				crew.Weapons.Give(weapon, 9999, true, true);
 		}
 
 
@@ -329,6 +321,8 @@ namespace GFPS
 			return newCrew.ToArray<Ped>();
 		}
 	}
+
+
 
 
 
@@ -398,6 +392,15 @@ namespace GFPS
 			}
 
 			return newCrew.ToArray<Ped>();
+		}
+
+
+
+		protected override void giveWeapons(Ped crew, WeaponHash[] weaponArray)
+		{
+			base.giveWeapons(crew, weaponArray);
+			foreach (WeaponHash sidearm in CrewHandler.sidearms)
+				crew.Weapons.Give(sidearm, 9999, false, true);
 		}
 	}
 
