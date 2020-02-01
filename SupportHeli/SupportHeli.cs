@@ -49,7 +49,7 @@ namespace GFPS
 
 		private void onKeyDown(object sender, KeyEventArgs e)
 		{
-			if (e.KeyCode == activateKey && e.Modifiers == Keys.Control)
+			if (e.KeyCode == activateKey && e.Modifiers == Keys.Shift)
 			{
 				// if supportHeli is not active, spawn one
 				if (!supportHeli.isActive)
@@ -64,9 +64,9 @@ namespace GFPS
 			}
 
 			// reload key pressed
-			else if (Game.IsControlPressed(GTA.Control.Reload))
+			else if (Game.IsControlPressed(GTA.Control.Reload) && e.Modifiers == Keys.Shift)
 			{
-
+				CrewHandler.assembleNearPlayer(groundCrew);
 			}
 		}
 
@@ -120,6 +120,9 @@ namespace GFPS
 			sec = "SupportHeli";
 			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			supportHeli.rg = heliRg;
+
+			// manipulate heliRg
+			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
 
 			// debug printouts
 			if (verbose)
@@ -176,15 +179,13 @@ namespace GFPS
 		}
 
 		
+		
 		private void cleanUp(object sender, EventArgs e)
 		{
 			attackHeli.destructor(true);
 			supportHeli.destructor(true);
 		}
 	}
-
-
-
 
 }
 

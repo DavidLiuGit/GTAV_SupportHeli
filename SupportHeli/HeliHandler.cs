@@ -256,6 +256,7 @@ namespace GFPS
 			gunner.FiringPattern = fp;
 			gunner.Task.FightAgainstHatedTargets(99999);
 			gunner.AlwaysKeepTask = true;
+			gunner.CanRagdoll = false;
 
 			return gunner;
 		}
@@ -355,6 +356,11 @@ namespace GFPS
 		}
 
 
+		/// <summary>
+		/// Task SupportHeli gunners to rappel down to the ground (and become ground crew).
+		/// </summary>
+		/// <param name="role">Ground crew role; weapons are assigned based on role</param>
+		/// <returns>Array of <c>Ped</c> rappeling</returns>
 		public Ped[] groundCrewRappelDown(GroundCrewRole role)
 		{
 			// instruct pilot to hold position
@@ -371,6 +377,7 @@ namespace GFPS
 			foreach (Ped crew in newGroundCrew)
 				crew.Task.RappelFromHelicopter();
 
+			GTA.UI.Notification.Show("Gunners rappeling from support heli.");
 			return newGroundCrew;
 		}
 

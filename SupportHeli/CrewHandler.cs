@@ -12,8 +12,12 @@ namespace GFPS
 {
 	class CrewHandler
 	{
+		static Random rng = new Random();
+
 		#region groundCrew
+		// NPC must be within regroupThreshold * assembleMultiplier to be finished assembling
 		static float regroupThreshold = 12.5f;
+		static float assembleMultiplier = 0.55f;		
 
 		/// <summary>
 		/// 
@@ -21,14 +25,14 @@ namespace GFPS
 		/// <param name="crew"></param>
 		/// <param name="?"></param>
 		public static GroundCrewAction groundGunnerHandler (Ped gunner, GroundCrewAction currAction){
-			GroundCrewAction newAction = currAction;
+			GroundCrewAction nextAction = currAction;
 			Vector3 playerPos = Game.Player.Character.Position;
 
 			switch (currAction)
 			{
 				// if the crew is currently in the air (i.e. not on the ground), do nothing
 				case GroundCrewAction.Descending:
-					if (!gunner.IsInAir) newAction = GroundCrewAction.Regrouping;
+					if (!gunner.IsInAir) nextAction = GroundCrewAction.Regrouping;
 					break;
 
 
@@ -41,18 +45,28 @@ namespace GFPS
 					{
 						gunner.BlockPermanentEvents = false;
 						gunner.Task.FightAgainstHatedTargets(50000);
-						newAction = GroundCrewAction.Fighting;
+						nextAction = GroundCrewAction.Fighting;
 					}
 					break;
 
 				// fight unless too far from player
 				case GroundCrewAction.Fighting:
+					gunner.BlockPermanentEvents = false;
 					if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
-						newAction = GroundCrewAction.Regrouping;
+						nextAction = GroundCrewAction.Regrouping;
+					break;
+
+				// if player has prompted crew to assemble
+				case GroundCrewAction.Assembling:
+					if (playerPos.DistanceTo(gunner.Position) < regroupThreshold * assembleMultiplier)
+					{
+						gunner.Task.FightAgainstHatedTargets(50000);
+						nextAction = GroundCrewAction.Fighting;
+					}
 					break;
 			}
 
-			return newAction;
+			return nextAction;
 		}
 
 
@@ -64,11 +78,11 @@ namespace GFPS
 
 		private static void handleMoveToPlayer(Ped crew, float distance, float threshold, Vector3 playerPos)
 		{
-			Vector3 positionNearPlayer = Helper.getVector3NearPlayer(threshold / 2, playerPos);
+			Vector3 positionNearPlayer = Helper.getVector3NearTarget(threshold / 2, playerPos);
 
 			// teleport near player
 			if (distance > 20 * threshold)
-				crew.Position = Helper.getVector3NearPlayer(threshold * 10, playerPos);
+				crew.Position = Helper.getVector3NearTarget(threshold * 10, playerPos);
 
 			// run to player
 			if (distance > 2 * threshold)
@@ -86,16 +100,24 @@ namespace GFPS
 		}
 
 
-		public static void giveGroundCrewGuns(Ped crew, GroundCrewRole role)
-		{
-			// give the ground crew member sidearms
-			foreach (WeaponHash sa in sidearms)
-				crew.Weapons.Give(sa, 9999, true, true);
 
-			// give the ground crew member primary weapons for their role
-			WeaponHash[] primaryWeapons = weaponsOfRoles[role];
-			foreach (WeaponHash wp in primaryWeapons)
-				crew.Weapons.Give(wp, 9999, true, true);
+		public static void assembleNearPlayer(Dictionary<Ped, GroundCrewAction> groundCrew)
+		{
+			Random rng = new Random();
+			Vector3 playerPos = Game.Player.Character.Position;
+
+			GTA.UI.Notification.Show(groundCrew.Count + " attempting to reassemble");
+
+			// iterate over ground crew
+			foreach (Ped p in groundCrew.Keys.ToArray())
+			{
+				// if the npc is currently fighting or regrouping
+				if (groundCrew[p] == GroundCrewAction.Fighting || groundCrew[p] == GroundCrewAction.Regrouping)
+				{
+					groundCrew[p] = GroundCrewAction.Assembling;
+					p.Task.RunTo(Helper.getVector3NearTarget(0.3f * regroupThreshold, playerPos));
+				}
+			}
 		}
 		#endregion
 
