@@ -62,12 +62,18 @@ namespace GFPS
 			{
 				attackHeli.spawnMannedHeli();
 			}
+
+			// reload key pressed
+			else if (Game.IsControlPressed(GTA.Control.Reload))
+			{
+
+			}
 		}
 
 
 
 		int iTick = 0;
-		int N = 400;
+		int N = 200;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
@@ -132,7 +138,7 @@ namespace GFPS
 		/// </summary>
 		private void gunnersRappelDown()
 		{
-			// make sure there are gunners in the gunner seats
+			// make sure there are gunners in the crew seats
 			Ped[] crew = supportHeli.groundCrewRappelDown();
 			
 			foreach (Ped gunner in crew)
@@ -140,6 +146,9 @@ namespace GFPS
 		}
 
 
+		/// <summary>
+		/// Update the actions of the ground crew using <c>CrewHandler.groundGunnerHandler</c>.
+		/// </summary>
 		private void updateGroundCrewActions()
 		{
 			bool crewRappeling = false;
@@ -148,7 +157,14 @@ namespace GFPS
 			var crew = groundCrew.Keys;
 			for (int i = 0; i < crew.Count; i++)
 			{
+				// check if the NPC is dead; if so, remove from list and continue
 				Ped p = crew.ElementAt(i);
+				if (p.IsDead)
+				{
+					groundCrew.Remove(p);
+					continue;
+				}
+
 				GroundCrewAction newAction = CrewHandler.groundGunnerHandler(crew.ElementAt(i), groundCrew[p]);
 				if (newAction == GroundCrewAction.Descending) crewRappeling = true;
 				groundCrew[p] = newAction;

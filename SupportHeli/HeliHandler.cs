@@ -241,18 +241,18 @@ namespace GFPS
 			if (seatOccupant != null)
 				seatOccupant.Delete();
 
-			// spawn the gunner into the specified seat
+			// spawn the crew into the specified seat
 			Ped gunner = heli.CreatePedOnSeat(seat, PedHash.Blackops01SMY);
 
-			// ally the gunner to the player
+			// ally the crew to the player
 			gunner.RelationshipGroup = rg;
 
-			// give gunner weapons in weaponArray, plus a standard issue sidearm
+			// give crew weapons in weaponArray, plus a standard issue sidearm
 			gunner.Weapons.Give(sidearm, 9999, true, true);
 			foreach (WeaponHash weapon in weaponArray)
 				gunner.Weapons.Give(weapon, 9999, true, true);
 
-			// task gunner with fighting any enemies
+			// task crew with fighting any enemies
 			gunner.FiringPattern = fp;
 			gunner.Task.FightAgainstHatedTargets(99999);
 			gunner.AlwaysKeepTask = true;
@@ -292,7 +292,7 @@ namespace GFPS
 
 	public class Attackheli : Heli
 	{
-		// by default, give each (non-copilot) gunner assault weapons
+		// by default, give each (non-copilot) crew assault weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
 
 		public Attackheli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
@@ -333,7 +333,7 @@ namespace GFPS
 
 	public class SupportHeli : Heli
 	{
-		// by default, give each (non-copilot) gunner heavy weapons
+		// by default, give each (non-copilot) crew heavy weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
 
 		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
@@ -361,7 +361,7 @@ namespace GFPS
 			pilotHoldPosition = true;
 			holdPositionAbovePlayer();
 
-			// make sure there are gunners in the gunner seats
+			// make sure there are gunners in the crew seats
 			Ped[] newGroundCrew = new Ped[2] {
 				spawnCrewGunner(VehicleSeat.LeftRear, CrewHandler.weaponsOfRoles[role]),
 				spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),

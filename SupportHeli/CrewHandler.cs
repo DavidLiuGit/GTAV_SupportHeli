@@ -18,7 +18,7 @@ namespace GFPS
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="gunner"></param>
+		/// <param name="crew"></param>
 		/// <param name="?"></param>
 		public static GroundCrewAction groundGunnerHandler (Ped gunner, GroundCrewAction currAction){
 			GroundCrewAction newAction = currAction;
@@ -26,24 +26,17 @@ namespace GFPS
 
 			switch (currAction)
 			{
-				// if the gunner is currently in the air (i.e. not on the ground), do nothing
+				// if the crew is currently in the air (i.e. not on the ground), do nothing
 				case GroundCrewAction.Descending:
 					if (!gunner.IsInAir) newAction = GroundCrewAction.Regrouping;
 					break;
 
 
-				// calculate 
+				// handle depending on how far away from player
 				case GroundCrewAction.Regrouping:
-					if (playerPos.DistanceTo(gunner.Position) > 2 * regroupThreshold)
-					{
-						gunner.BlockPermanentEvents = true;
-						gunner.Task.RunTo(playerPos);
-					}
-					else if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
-					{
-						gunner.BlockPermanentEvents = false;
-						gunner.Task.GoTo(playerPos);
-					}
+					float distance = playerPos.DistanceTo(gunner.Position);
+					if (distance > regroupThreshold)
+						handleMoveToPlayer(gunner, distance, regroupThreshold, playerPos);
 					else
 					{
 						gunner.BlockPermanentEvents = false;
@@ -52,6 +45,7 @@ namespace GFPS
 					}
 					break;
 
+				// fight unless too far from player
 				case GroundCrewAction.Fighting:
 					if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
 						newAction = GroundCrewAction.Regrouping;
@@ -65,6 +59,30 @@ namespace GFPS
 		public static GroundCrewAction groundGunnerHandler(KeyValuePair<Ped, GroundCrewAction> entry)
 		{
 			return groundGunnerHandler(entry.Key, entry.Value);
+		}
+
+
+		private static void handleMoveToPlayer(Ped crew, float distance, float threshold, Vector3 playerPos)
+		{
+			Vector3 positionNearPlayer = Helper.getVector3NearPlayer(threshold / 2, playerPos);
+
+			// teleport near player
+			if (distance > 20 * threshold)
+				crew.Position = Helper.getVector3NearPlayer(threshold * 10, playerPos);
+
+			// run to player
+			if (distance > 2 * threshold)
+			{
+				crew.BlockPermanentEvents = true;
+				crew.Task.RunTo(positionNearPlayer);
+			}
+
+			// walk to player
+			else
+			{
+				crew.BlockPermanentEvents = false;
+				crew.Task.GoTo(positionNearPlayer);
+			}
 		}
 
 
@@ -135,7 +153,8 @@ namespace GFPS
 		Descending,
 		Regrouping,
 		Fighting,
-		Gathering,
+		Assembling,
+		KIA,			// dead
 	}
 
 

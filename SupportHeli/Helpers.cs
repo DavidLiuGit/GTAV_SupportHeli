@@ -35,5 +35,18 @@ namespace GFPS
 			return new Vector3(x, y, height);
 		}
 
+
+
+		/// <summary>
+		/// Given a target position and a radius, return a random coordinate on the edge of the circle.
+		/// </summary>
+		/// <param name="radius">Radius of the circle, in meters</param>
+		/// <param name="playerPos"><c>Vector3</c> representing player's position</param>
+		/// <returns></returns>
+		public static Vector3 getVector3NearPlayer(float radius, Vector3 targetPos)
+		{
+			return targetPos + getOffsetVector3(0.0f, radius);
+		}
+
 	}
 }
