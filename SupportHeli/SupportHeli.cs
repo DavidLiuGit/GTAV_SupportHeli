@@ -164,6 +164,7 @@ namespace GFPS
 				Ped p = crew.ElementAt(i);
 				if (p.IsDead)
 				{
+					CrewHandler.crewDestructor(p);
 					groundCrew.Remove(p);
 					continue;
 				}
@@ -184,6 +185,8 @@ namespace GFPS
 		{
 			attackHeli.destructor(true);
 			supportHeli.destructor(true);
+			foreach (Ped p in groundCrew.Keys.ToArray())
+				CrewHandler.crewDestructor(p, true);
 		}
 	}
 

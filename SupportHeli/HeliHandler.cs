@@ -331,10 +331,22 @@ namespace GFPS
 		// by default, give each (non-copilot) crew heavy weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
 
+		PedGroup playerPedGroup;
+
 		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
 			base(iniName, iniHeight, iniRadius, iniBulletproof)
 		{ 
 			isAttackHeli = false;
+
+			// get the player's current PedGroup (or create a new one if player is not in one)
+			playerPedGroup = Game.Player.Character.PedGroup;
+			if (playerPedGroup == null)
+			{
+				playerPedGroup = new PedGroup();
+				playerPedGroup.Add(Game.Player.Character, true);
+			}
+			playerPedGroup.SeparationRange = 2000f;
+			playerPedGroup.Formation = Formation.Circle2;
 		}
 
 
@@ -369,7 +381,10 @@ namespace GFPS
 
 			// instruct gunners to rappel
 			foreach (Ped crew in newGroundCrew)
+			{
 				crew.Task.RappelFromHelicopter();
+				configureGroundCrew(crew);
+			}
 
 			GTA.UI.Notification.Show("Gunners rappeling from support heli.");
 			return newGroundCrew;
@@ -401,6 +416,21 @@ namespace GFPS
 			base.giveWeapons(crew, weaponArray);
 			foreach (WeaponHash sidearm in CrewHandler.sidearms)
 				crew.Weapons.Give(sidearm, 9999, false, true);
+		}
+
+
+
+		protected void configureGroundCrew(Ped crew)
+		{
+			// add to player's PedGroup if there is space
+			playerPedGroup.Add(crew, false);
+			crew.NeverLeavesGroup = true;
+			GTA.UI.Notification.Show("Pedgroup count " + playerPedGroup.MemberCount);
+
+			// draw blip
+			crew.AddBlip();
+			crew.AttachedBlip.Scale = 0.7f;
+			crew.AttachedBlip.Color = BlipColor.Green;
 		}
 	}
 
