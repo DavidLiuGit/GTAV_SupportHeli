@@ -25,7 +25,7 @@ namespace GFPS
 		protected bool canRappel = false;
 
 		// consts
-		protected const float initialHeight = 70.0f;
+		protected const float initialHeight = 50.0f;
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 
@@ -191,6 +191,7 @@ namespace GFPS
 			// spawn in heli and apply settings
 			Vehicle heli = World.CreateVehicle((Model)((int)model), Game.Player.Character.Position + offset);
 			heli.IsEngineRunning = true;
+			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
 			heli.IsBulletProof = bulletproof;
 
@@ -390,7 +391,7 @@ namespace GFPS
 				configureGroundCrew(crew);
 			}
 
-			GTA.UI.Notification.Show("Gunners rappeling from support heli.");
+			GTA.UI.Notification.Show("Pedgroup count " + playerPedGroup.MemberCount);
 			return newGroundCrew;
 		}
 		#endregion
@@ -431,7 +432,6 @@ namespace GFPS
 			// add to player's PedGroup if there is space
 			playerPedGroup.Add(crew, false);
 			crew.NeverLeavesGroup = true;
-			GTA.UI.Notification.Show("Pedgroup count " + playerPedGroup.MemberCount);
 
 			// draw blip
 			crew.AddBlip();
