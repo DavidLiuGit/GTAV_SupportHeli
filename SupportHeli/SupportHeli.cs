@@ -63,11 +63,6 @@ namespace GFPS
 				attackHeli.spawnMannedHeli();
 			}
 
-			// reload key pressed
-			else if (Game.IsControlPressed(GTA.Control.Reload) && e.Modifiers == Keys.Shift)
-			{
-				CrewHandler.assembleNearPlayer(groundCrew);
-			}
 		}
 
 
@@ -92,12 +87,7 @@ namespace GFPS
 			// handle ground crew actions
 			updateGroundCrewActions();
 		}
-
-
-		readonly Vector3 nullVector3 = new Vector3(0f, 0f, 0f);
-		const WeaponHash defaultPrimary = WeaponHash.SpecialCarbine;
-		const WeaponHash defaultSidearm = WeaponHash.CombatPistol;
-
+		
 
 		// instances of Heli to track
 		Attackheli attackHeli;
@@ -106,7 +96,7 @@ namespace GFPS
 		/// <summary>
 		/// Read settings from INI file and instantiate necessary data structures with the settings.
 		/// </summary>
-		private void readSettings (bool verbose = true) {
+		private void readSettings (bool verbose = false) {
 			// read in general settings
 			string sec = "General";
 			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey", sec) ?? "F10");
@@ -183,8 +173,11 @@ namespace GFPS
 		
 		private void cleanUp(object sender, EventArgs e)
 		{
+			// clean up helis; force delete
 			attackHeli.destructor(true);
 			supportHeli.destructor(true);
+
+			// clean up any ground crew; force delete
 			foreach (Ped p in groundCrew.Keys.ToArray())
 				CrewHandler.crewDestructor(p, true);
 		}

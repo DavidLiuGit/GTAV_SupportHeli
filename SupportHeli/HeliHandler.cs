@@ -63,8 +63,7 @@ namespace GFPS
 			bulletproof = bp;
 
 			// instantiate a relationship group
-			rg = World.AddRelationshipGroup("heliGroup");
-			rg.SetRelationshipBetweenGroups(Game.Player.Character.RelationshipGroup, Relationship.Companion, true);
+			rg = Game.Player.Character.RelationshipGroup;
 		}
 
 
@@ -80,6 +79,7 @@ namespace GFPS
 			{
 				// delete the blip
 				heli.AttachedBlip.Delete();
+				heli.MarkAsNoLongerNeeded();
 
 				// if destroying by force
 				if (force)
@@ -295,6 +295,7 @@ namespace GFPS
 		}
 
 
+		#region helpers
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -320,6 +321,7 @@ namespace GFPS
 
 			return newCrew.ToArray<Ped>();
 		}
+		#endregion
 	}
 
 
@@ -350,6 +352,8 @@ namespace GFPS
 		}
 
 
+
+		#region publicMethods
 		/// <summary>
 		/// Spawn and task 2 ground crew NPCs to rappel down from the SupportHeli. If no <c>GroundCrewRole</c>
 		/// is specified, one will be chosen at random.
@@ -389,9 +393,11 @@ namespace GFPS
 			GTA.UI.Notification.Show("Gunners rappeling from support heli.");
 			return newGroundCrew;
 		}
+		#endregion
 
 
 
+		#region helpers
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -432,6 +438,7 @@ namespace GFPS
 			crew.AttachedBlip.Scale = 0.7f;
 			crew.AttachedBlip.Color = BlipColor.Green;
 		}
+		#endregion
 	}
 
 

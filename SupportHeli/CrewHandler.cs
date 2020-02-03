@@ -136,6 +136,7 @@ namespace GFPS
 			try
 			{
 				ped.AttachedBlip.Delete();			// delete blip
+				ped.MarkAsNoLongerNeeded();
 
 				if (force)
 				{
