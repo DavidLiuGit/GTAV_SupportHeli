@@ -144,8 +144,6 @@ namespace GFPS
 		/// </summary>
 		private void updateGroundCrewActions()
 		{
-			bool crewRappeling = false;
-
 			// iterate over each groundCrew that is being tracked
 			var crew = groundCrew.Keys;
 			for (int i = 0; i < crew.Count; i++)
@@ -158,15 +156,7 @@ namespace GFPS
 					groundCrew.Remove(p);
 					continue;
 				}
-
-				GroundCrewAction newAction = CrewHandler.groundGunnerHandler(crew.ElementAt(i), groundCrew[p]);
-				if (newAction == GroundCrewAction.Descending) crewRappeling = true;
-				groundCrew[p] = newAction;
 			}
-
-			// if no ground crew members are rappeling anymore
-			if (!crewRappeling)
-				supportHeli.pilotHoldPosition = false;
 		}
 
 		

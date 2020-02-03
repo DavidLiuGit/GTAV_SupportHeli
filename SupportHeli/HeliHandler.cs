@@ -79,7 +79,6 @@ namespace GFPS
 			{
 				// delete the blip
 				heli.AttachedBlip.Delete();
-				heli.MarkAsNoLongerNeeded();
 
 				// if destroying by force
 				if (force)
@@ -88,7 +87,8 @@ namespace GFPS
 					foreach (Ped passenger in passengers)
 						passenger.Delete();
 					heli.Delete();
-				}
+				} else
+					heli.MarkAsNoLongerNeeded();
 			}
 			catch { }
 		}
@@ -333,8 +333,9 @@ namespace GFPS
 	{
 		// by default, give each (non-copilot) crew heavy weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
+		const float blipScale = 0.7f;
+		public PedGroup playerPedGroup;
 
-		PedGroup playerPedGroup;
 
 		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
 			base(iniName, iniHeight, iniRadius, iniBulletproof)
@@ -374,10 +375,6 @@ namespace GFPS
 		/// <returns>Array of <c>Ped</c> rappeling</returns>
 		public Ped[] groundCrewRappelDown(GroundCrewRole role)
 		{
-			// instruct pilot to hold position
-			pilotHoldPosition = true;
-			holdPositionAbovePlayer();
-
 			// make sure there are gunners in the crew seats
 			Ped[] newGroundCrew = new Ped[2] {
 				spawnCrewGunner(VehicleSeat.LeftRear, CrewHandler.weaponsOfRoles[role]),
@@ -435,7 +432,7 @@ namespace GFPS
 
 			// draw blip
 			crew.AddBlip();
-			crew.AttachedBlip.Scale = 0.7f;
+			crew.AttachedBlip.Scale = blipScale;
 			crew.AttachedBlip.Color = BlipColor.Green;
 		}
 		#endregion

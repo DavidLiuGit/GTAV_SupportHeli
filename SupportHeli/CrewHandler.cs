@@ -136,12 +136,12 @@ namespace GFPS
 			try
 			{
 				ped.AttachedBlip.Delete();			// delete blip
-				ped.MarkAsNoLongerNeeded();
 
 				if (force)
 				{
 					ped.Delete();
-				}
+				} else
+					ped.MarkAsNoLongerNeeded();
 			}
 			catch { }
 		}
