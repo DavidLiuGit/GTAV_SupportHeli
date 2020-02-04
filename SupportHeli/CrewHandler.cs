@@ -229,6 +229,7 @@ namespace GFPS
 		public int health = 1000;
 		public bool isInvincible = false;
 		public bool canRagdoll = false;
+		public bool canWrithe = false;
 		public WeaponHash sidearm = WeaponHash.Pistol;
 
 

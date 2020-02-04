@@ -256,6 +256,7 @@ namespace GFPS
 			gunner.Task.FightAgainstHatedTargets(99999);
 			gunner.AlwaysKeepTask = true;
 			gunner.CanRagdoll = false;
+			gunner.CanWrithe = false;
 
 			return gunner;
 		}
@@ -335,6 +336,9 @@ namespace GFPS
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
 		const float blipScale = 0.7f;
 		public PedGroup playerPedGroup;
+		
+		protected int seatIndex = 0;
+		protected VehicleSeat[] seatSelection;
 
 
 		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
@@ -351,6 +355,9 @@ namespace GFPS
 			}
 			playerPedGroup.SeparationRange = 99999f;
 			playerPedGroup.Formation = Formation.Circle2;
+
+			// set the list of seats (based on helicopter model, but temporarily all the same)
+			seatSelection = new VehicleSeat[] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
 		}
 
 
@@ -376,10 +383,11 @@ namespace GFPS
 		public Ped[] groundCrewRappelDown(GroundCrewRole role)
 		{
 			// make sure there are gunners in the crew seats
-			Ped[] newGroundCrew = new Ped[2] {
-				spawnCrewGunner(VehicleSeat.LeftRear, CrewHandler.weaponsOfRoles[role]),
-				spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
+			Ped[] newGroundCrew = new Ped[] {
+				spawnCrewGunner(seatSelection[seatIndex % seatSelection.Length], CrewHandler.weaponsOfRoles[role]),
+				//spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
 			};
+			seatIndex++;
 
 			// instruct gunners to rappel
 			foreach (Ped crew in newGroundCrew)
@@ -388,7 +396,7 @@ namespace GFPS
 				configureGroundCrew(crew);
 			}
 
-			GTA.UI.Notification.Show("Pedgroup count " + playerPedGroup.MemberCount);
+			GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
 			return newGroundCrew;
 		}
 		#endregion
