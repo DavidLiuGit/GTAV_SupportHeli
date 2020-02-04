@@ -349,7 +349,7 @@ namespace GFPS
 				playerPedGroup = new PedGroup();
 				playerPedGroup.Add(Game.Player.Character, true);
 			}
-			playerPedGroup.SeparationRange = 2000f;
+			playerPedGroup.SeparationRange = 99999f;
 			playerPedGroup.Formation = Formation.Circle2;
 		}
 
