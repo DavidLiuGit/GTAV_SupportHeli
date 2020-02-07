@@ -306,6 +306,7 @@ namespace GFPS
 			switch (model)
 			{
 				case HeliModel.Akula:
+				case HeliModel.Hunter:
 					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
 					break;
 
@@ -454,5 +455,6 @@ namespace GFPS
 		Buzzard = 0x2F03547B,
 		Maverick = -1660661558,
 		Polmav = 353883353,
+		Hunter = -42959138,
 	}
 }
