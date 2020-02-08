@@ -25,7 +25,6 @@ namespace GFPS
 		protected bool canRappel = false;
 
 		// consts
-		protected const float initialHeight = 50.0f;
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 
@@ -112,7 +111,7 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(initialHeight, radius));
+				heli = spawnHeli(Helper.getOffsetVector3(height, radius));
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				isActive = true;
