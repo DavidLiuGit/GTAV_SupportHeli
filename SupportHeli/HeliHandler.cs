@@ -266,6 +266,9 @@ namespace GFPS
 			crew.Weapons.Give(sidearm, 9999, true, true);
 			foreach (WeaponHash weapon in weaponArray)
 				crew.Weapons.Give(weapon, 9999, true, true);
+
+			// automatically select the best weapon
+			crew.Weapons.Select(crew.Weapons.BestWeapon);
 		}
 
 
@@ -333,9 +336,10 @@ namespace GFPS
 	public class SupportHeli : Heli
 	{
 		// by default, give each (non-copilot) crew heavy weapons
-		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
+		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Heavy];
 		const float blipScale = 0.7f;
 		public PedGroup playerPedGroup;
+		protected const int maxConfigureAttempts = 5;
 		
 		protected int seatIndex = 0;
 		protected VehicleSeat[] seatSelection;
@@ -393,7 +397,14 @@ namespace GFPS
 			foreach (Ped crew in newGroundCrew)
 			{
 				crew.Task.RappelFromHelicopter();
-				configureGroundCrew(crew);
+
+				bool res;
+				int i = 0;
+				do { 
+					res = configureGroundCrew(crew); 
+					i++;
+				}		// if unsuccessful, do again until it does succeed
+				while (!res && i < maxConfigureAttempts);
 			}
 
 			GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
@@ -425,23 +436,30 @@ namespace GFPS
 
 		protected override void giveWeapons(Ped crew, WeaponHash[] weaponArray)
 		{
-			base.giveWeapons(crew, weaponArray);
+			// give sidearms in addition to primaries
 			foreach (WeaponHash sidearm in CrewHandler.sidearms)
 				crew.Weapons.Give(sidearm, 9999, false, true);
+			base.giveWeapons(crew, weaponArray);
 		}
 
 
 
-		protected void configureGroundCrew(Ped crew)
+		protected bool configureGroundCrew(Ped crew)
 		{
 			// add to player's PedGroup if there is space
 			playerPedGroup.Add(crew, false);
 			crew.NeverLeavesGroup = true;
 
+			// verify that the crew is part of the player's PedGroup
+			if (!crew.IsInGroup)
+				return false;
+
 			// draw blip
 			crew.AddBlip();
 			crew.AttachedBlip.Scale = blipScale;
 			crew.AttachedBlip.Color = BlipColor.Green;
+
+			return true;
 		}
 		#endregion
 	}

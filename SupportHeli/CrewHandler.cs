@@ -161,7 +161,7 @@ namespace GFPS
 				}
 			},
 			{
-				GroundCrewRole.Demolition,
+				GroundCrewRole.Heavy,
 				new WeaponHash[] {
 					WeaponHash.MicroSMG, WeaponHash.Gusenberg, WeaponHash.MG, WeaponHash.CombatMG,
 				}
@@ -187,9 +187,8 @@ namespace GFPS
 		};
 
 		public static WeaponHash[] sidearms = new WeaponHash[] {
-			WeaponHash.SwitchBlade, WeaponHash.Knife, 
-			WeaponHash.SNSPistol, WeaponHash.HeavyPistol, WeaponHash.Pistol50, WeaponHash.CombatPistol, WeaponHash.APPistol,
-			 
+			WeaponHash.SwitchBlade, WeaponHash.Knife, WeaponHash.KnuckleDuster, WeaponHash.StunGun,
+			WeaponHash.VintagePistol, WeaponHash.HeavyPistol, WeaponHash.Pistol50, WeaponHash.CombatPistol, WeaponHash.APPistol
 		};
 		#endregion
 	}
@@ -209,7 +208,7 @@ namespace GFPS
 
 	public enum GroundCrewRole {
 		Assault,
-		Demolition,
+		Heavy,
 		//Marksman,
 		SpecOps,
 		Breacher
