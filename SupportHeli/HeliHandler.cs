@@ -25,7 +25,6 @@ namespace GFPS
 		protected bool canRappel = false;
 
 		// consts
-		protected const float initialHeight = 70.0f;
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 
@@ -63,8 +62,7 @@ namespace GFPS
 			bulletproof = bp;
 
 			// instantiate a relationship group
-			rg = World.AddRelationshipGroup("heliGroup");
-			rg.SetRelationshipBetweenGroups(Game.Player.Character.RelationshipGroup, Relationship.Companion, true);
+			rg = Game.Player.Character.RelationshipGroup;
 		}
 
 
@@ -88,7 +86,8 @@ namespace GFPS
 					foreach (Ped passenger in passengers)
 						passenger.Delete();
 					heli.Delete();
-				}
+				} else
+					heli.MarkAsNoLongerNeeded();
 			}
 			catch { }
 		}
@@ -112,7 +111,7 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(initialHeight, radius));
+				heli = spawnHeli(Helper.getOffsetVector3(height, radius));
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				isActive = true;
@@ -191,6 +190,7 @@ namespace GFPS
 			// spawn in heli and apply settings
 			Vehicle heli = World.CreateVehicle((Model)((int)model), Game.Player.Character.Position + offset);
 			heli.IsEngineRunning = true;
+			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
 			heli.IsBulletProof = bulletproof;
 
@@ -255,6 +255,7 @@ namespace GFPS
 			gunner.Task.FightAgainstHatedTargets(99999);
 			gunner.AlwaysKeepTask = true;
 			gunner.CanRagdoll = false;
+			gunner.CanWrithe = false;
 
 			return gunner;
 		}
@@ -265,6 +266,9 @@ namespace GFPS
 			crew.Weapons.Give(sidearm, 9999, true, true);
 			foreach (WeaponHash weapon in weaponArray)
 				crew.Weapons.Give(weapon, 9999, true, true);
+
+			// automatically select the best weapon
+			crew.Weapons.Select(crew.Weapons.BestWeapon);
 		}
 
 
@@ -295,6 +299,7 @@ namespace GFPS
 		}
 
 
+		#region helpers
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -303,6 +308,7 @@ namespace GFPS
 			switch (model)
 			{
 				case HeliModel.Akula:
+				case HeliModel.Hunter:
 					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
 					break;
 
@@ -320,6 +326,7 @@ namespace GFPS
 
 			return newCrew.ToArray<Ped>();
 		}
+		#endregion
 	}
 
 
@@ -329,15 +336,37 @@ namespace GFPS
 	public class SupportHeli : Heli
 	{
 		// by default, give each (non-copilot) crew heavy weapons
-		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Demolition];
+		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Heavy];
+		const float blipScale = 0.7f;
+		public PedGroup playerPedGroup;
+		protected const int maxConfigureAttempts = 5;
+		
+		protected int seatIndex = 0;
+		protected VehicleSeat[] seatSelection;
+
 
 		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
 			base(iniName, iniHeight, iniRadius, iniBulletproof)
 		{ 
 			isAttackHeli = false;
+
+			// get the player's current PedGroup (or create a new one if player is not in one)
+			playerPedGroup = Game.Player.Character.PedGroup;
+			if (playerPedGroup == null)
+			{
+				playerPedGroup = new PedGroup();
+				playerPedGroup.Add(Game.Player.Character, true);
+			}
+			playerPedGroup.SeparationRange = 99999f;
+			playerPedGroup.Formation = Formation.Circle2;
+
+			// set the list of seats (based on helicopter model, but temporarily all the same)
+			seatSelection = new VehicleSeat[] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
 		}
 
 
+
+		#region publicMethods
 		/// <summary>
 		/// Spawn and task 2 ground crew NPCs to rappel down from the SupportHeli. If no <c>GroundCrewRole</c>
 		/// is specified, one will be chosen at random.
@@ -357,26 +386,35 @@ namespace GFPS
 		/// <returns>Array of <c>Ped</c> rappeling</returns>
 		public Ped[] groundCrewRappelDown(GroundCrewRole role)
 		{
-			// instruct pilot to hold position
-			pilotHoldPosition = true;
-			holdPositionAbovePlayer();
-
 			// make sure there are gunners in the crew seats
-			Ped[] newGroundCrew = new Ped[2] {
-				spawnCrewGunner(VehicleSeat.LeftRear, CrewHandler.weaponsOfRoles[role]),
-				spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
+			Ped[] newGroundCrew = new Ped[] {
+				spawnCrewGunner(seatSelection[seatIndex % seatSelection.Length], CrewHandler.weaponsOfRoles[role]),
+				//spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
 			};
+			seatIndex++;
 
 			// instruct gunners to rappel
 			foreach (Ped crew in newGroundCrew)
+			{
 				crew.Task.RappelFromHelicopter();
 
-			GTA.UI.Notification.Show("Gunners rappeling from support heli.");
+				bool res;
+				int i = 0;
+				do { 
+					res = configureGroundCrew(crew); 
+					i++;
+				}		// if unsuccessful, do again until it does succeed
+				while (!res && i < maxConfigureAttempts);
+			}
+
+			GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
 			return newGroundCrew;
 		}
+		#endregion
 
 
 
+		#region helpers
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -398,10 +436,32 @@ namespace GFPS
 
 		protected override void giveWeapons(Ped crew, WeaponHash[] weaponArray)
 		{
-			base.giveWeapons(crew, weaponArray);
+			// give sidearms in addition to primaries
 			foreach (WeaponHash sidearm in CrewHandler.sidearms)
 				crew.Weapons.Give(sidearm, 9999, false, true);
+			base.giveWeapons(crew, weaponArray);
 		}
+
+
+
+		protected bool configureGroundCrew(Ped crew)
+		{
+			// add to player's PedGroup if there is space
+			playerPedGroup.Add(crew, false);
+			crew.NeverLeavesGroup = true;
+
+			// verify that the crew is part of the player's PedGroup
+			if (!crew.IsInGroup)
+				return false;
+
+			// draw blip
+			crew.AddBlip();
+			crew.AttachedBlip.Scale = blipScale;
+			crew.AttachedBlip.Color = BlipColor.Green;
+
+			return true;
+		}
+		#endregion
 	}
 
 
@@ -412,5 +472,6 @@ namespace GFPS
 		Buzzard = 0x2F03547B,
 		Maverick = -1660661558,
 		Polmav = 353883353,
+		Hunter = -42959138,
 	}
 }

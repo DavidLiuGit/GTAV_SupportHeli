@@ -39,23 +39,23 @@ namespace GFPS
 
 				// handle depending on how far away from player
 				case GroundCrewAction.Regrouping:
-					float distance = playerPos.DistanceTo(gunner.Position);
-					if (distance > regroupThreshold)
-						handleMoveToPlayer(gunner, distance, regroupThreshold, playerPos);
-					else
-					{
-						gunner.BlockPermanentEvents = false;
-						gunner.Task.FightAgainstHatedTargets(50000);
-						nextAction = GroundCrewAction.Fighting;
-					}
+					//float distance = playerPos.DistanceTo(gunner.Position);
+					//if (distance > regroupThreshold)
+					//	handleMoveToPlayer(gunner, distance, regroupThreshold, playerPos);
+					//else
+					//{
+					//	gunner.BlockPermanentEvents = false;
+					//	gunner.Task.FightAgainstHatedTargets(50000);
+					//	nextAction = GroundCrewAction.Fighting;
+					//}
 					break;
 
 				// fight unless too far from player
-				case GroundCrewAction.Fighting:
-					gunner.BlockPermanentEvents = false;
-					if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
-						nextAction = GroundCrewAction.Regrouping;
-					break;
+				//case GroundCrewAction.Fighting:
+				//	gunner.BlockPermanentEvents = false;
+				//	if (playerPos.DistanceTo(gunner.Position) > regroupThreshold)
+				//		nextAction = GroundCrewAction.Regrouping;
+				//	break;
 
 				// if player has prompted crew to assemble
 				case GroundCrewAction.Assembling:
@@ -65,6 +65,11 @@ namespace GFPS
 						nextAction = GroundCrewAction.Fighting;
 					} else
 						gunner.Task.RunTo(Helper.getVector3NearTarget(0.3f * regroupThreshold, playerPos));
+					break;
+
+				// guard the player
+				case GroundCrewAction.Guarding:
+
 					break;
 			}
 
@@ -118,6 +123,28 @@ namespace GFPS
 				}
 			}
 		}
+
+
+
+		/// <summary>
+		/// Destroy instance of NPC if the NPC is dead or the script is being aborted
+		/// </summary>
+		/// <param name="ped"></param>
+		/// <param name="delete"></param>
+		public static void crewDestructor(Ped ped, bool force = false)
+		{
+			try
+			{
+				ped.AttachedBlip.Delete();			// delete blip
+
+				if (force)
+				{
+					ped.Delete();
+				} else
+					ped.MarkAsNoLongerNeeded();
+			}
+			catch { }
+		}
 		#endregion
 
 
@@ -134,7 +161,7 @@ namespace GFPS
 				}
 			},
 			{
-				GroundCrewRole.Demolition,
+				GroundCrewRole.Heavy,
 				new WeaponHash[] {
 					WeaponHash.MicroSMG, WeaponHash.Gusenberg, WeaponHash.MG, WeaponHash.CombatMG,
 				}
@@ -160,9 +187,8 @@ namespace GFPS
 		};
 
 		public static WeaponHash[] sidearms = new WeaponHash[] {
-			WeaponHash.SwitchBlade, WeaponHash.Knife, 
-			WeaponHash.SNSPistol, WeaponHash.HeavyPistol, WeaponHash.Pistol50, WeaponHash.CombatPistol, WeaponHash.APPistol,
-			 
+			WeaponHash.SwitchBlade, WeaponHash.Knife, WeaponHash.KnuckleDuster, WeaponHash.StunGun,
+			WeaponHash.VintagePistol, WeaponHash.HeavyPistol, WeaponHash.Pistol50, WeaponHash.CombatPistol, WeaponHash.APPistol
 		};
 		#endregion
 	}
@@ -174,6 +200,7 @@ namespace GFPS
 		Descending,
 		Regrouping,
 		Fighting,
+		Guarding,
 		Assembling,
 		KIA,			// dead
 	}
@@ -181,7 +208,7 @@ namespace GFPS
 
 	public enum GroundCrewRole {
 		Assault,
-		Demolition,
+		Heavy,
 		//Marksman,
 		SpecOps,
 		Breacher
@@ -201,6 +228,7 @@ namespace GFPS
 		public int health = 1000;
 		public bool isInvincible = false;
 		public bool canRagdoll = false;
+		public bool canWrithe = false;
 		public WeaponHash sidearm = WeaponHash.Pistol;
 
 
