@@ -49,15 +49,21 @@ namespace GFPS
 
 		private void onKeyDown(object sender, KeyEventArgs e)
 		{
+			// Shift + activateKey pressed
 			if (e.KeyCode == activateKey && e.Modifiers == Keys.Shift)
 			{
 				// if supportHeli is not active, spawn one
 				if (!supportHeli.isActive)
 					supportHeli.spawnMannedHeli();
-				
+
 				// otherwise, task gunners with rappeling down
 				gunnersRappelDown();
 			}
+
+			else if (e.KeyCode == activateKey && Game.IsKeyPressed(Keys.Delete))
+				cleanUp(sender, e);
+
+			// activateKey pressed alone
 			else if (e.KeyCode == activateKey)
 			{
 				attackHeli.spawnMannedHeli();
@@ -92,6 +98,7 @@ namespace GFPS
 		// instances of Heli to track
 		Attackheli attackHeli;
 		SupportHeli supportHeli;
+		GroundCrewSettings crewSettings = new GroundCrewSettings();
 
 		/// <summary>
 		/// Read settings from INI file and instantiate necessary data structures with the settings.
@@ -110,6 +117,9 @@ namespace GFPS
 			sec = "SupportHeli";
 			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			supportHeli.rg = heliRg;
+
+			// read in settings for ground crew
+			crewSettings = new GroundCrewSettings(ini);
 
 			// manipulate heliRg
 			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
@@ -132,7 +142,7 @@ namespace GFPS
 		private void gunnersRappelDown()
 		{
 			// make sure there are gunners in the crew seats
-			Ped[] crew = supportHeli.groundCrewRappelDown();
+			Ped[] crew = supportHeli.groundCrewRappelDown(crewSettings);
 			
 			foreach (Ped gunner in crew)
 				groundCrew.Add(gunner, GroundCrewAction.Descending);
