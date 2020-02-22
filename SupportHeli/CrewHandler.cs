@@ -220,16 +220,30 @@ namespace GFPS
 		// creation-time settings
 		public PedHash[] modelArray = new PedHash[1] { PedHash.Blackops01SMY };
 		public bool drawBlip = false;
-
-		// behavior settings
-		public float regroupThreshold = 15.0f;
-
+		
 		// settings that can be applied to Peds
-		public int health = 1000;
+		public int health = 750;
 		public bool isInvincible = false;
 		public bool canRagdoll = false;
 		public bool canWrithe = false;
 		public WeaponHash sidearm = WeaponHash.Pistol;
+
+
+		// parameterless constructor
+		public GroundCrewSettings() { }
+
+		/// <summary>
+		/// Create instance of GroundCrewSettings from an INI file
+		/// </summary>
+		/// <param name="ini">instance of <c>IniFile</c></param>
+		public GroundCrewSettings(LapTimer.IniFile ini)
+		{
+			const string section = "GroundCrew";
+			health = int.Parse(ini.Read("health", section));
+			isInvincible = Convert.ToBoolean(int.Parse(ini.Read("invincible", section)));
+			canRagdoll = Convert.ToBoolean(int.Parse(ini.Read("canRagdoll", section)));
+			canWrithe = Convert.ToBoolean(int.Parse(ini.Read("canWrithe", section)));
+		}
 
 
 		/// <summary>
@@ -241,6 +255,7 @@ namespace GFPS
 			npc.Health = health;
 			npc.IsInvincible = isInvincible;
 			npc.CanRagdoll = canRagdoll;
+			npc.CanWrithe = canWrithe;
 			npc.Weapons.Give(sidearm, 9999, false, true);
 		}
 	}

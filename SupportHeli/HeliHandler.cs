@@ -372,10 +372,10 @@ namespace GFPS
 		/// is specified, one will be chosen at random.
 		/// </summary>
 		/// <returns>Array of <c>Ped</c></returns>
-		public Ped[] groundCrewRappelDown()
+		public Ped[] groundCrewRappelDown(GroundCrewSettings crewSettings)
 		{
 			Array roles = Enum.GetValues(typeof(GroundCrewRole));
-			return groundCrewRappelDown((GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length)));
+			return groundCrewRappelDown((GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length)), crewSettings);
 		}
 
 
@@ -384,7 +384,7 @@ namespace GFPS
 		/// </summary>
 		/// <param name="role">Ground crew role; weapons are assigned based on role</param>
 		/// <returns>Array of <c>Ped</c> rappeling</returns>
-		public Ped[] groundCrewRappelDown(GroundCrewRole role)
+		public Ped[] groundCrewRappelDown(GroundCrewRole role, GroundCrewSettings crewSettings)
 		{
 			// make sure there are gunners in the crew seats
 			Ped[] newGroundCrew = new Ped[] {
@@ -393,9 +393,10 @@ namespace GFPS
 			};
 			seatIndex++;
 
-			// instruct gunners to rappel
+			// apply settings to each gunner, instruct each gunner to rappel, and add to player's PedGroup
 			foreach (Ped crew in newGroundCrew)
 			{
+				crewSettings.applySettingsToPed(crew);
 				crew.Task.RappelFromHelicopter();
 
 				bool res;
