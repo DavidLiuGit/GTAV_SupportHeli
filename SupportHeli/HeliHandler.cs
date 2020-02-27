@@ -86,8 +86,17 @@ namespace GFPS
 					foreach (Ped passenger in passengers)
 						passenger.Delete();
 					heli.Delete();
-				} else
+				}
+
+				// if destroying gracefully, command the pilot to fly away. Mark the Heli and crew as no longer needed.
+				else
+				{
+					pilot.Task.FleeFrom(Game.Player.Character);
+					pilot.MarkAsNoLongerNeeded();
+					foreach (Ped passenger in passengers)
+						passenger.MarkAsNoLongerNeeded();
 					heli.MarkAsNoLongerNeeded();
+				}
 			}
 			catch { }
 		}
