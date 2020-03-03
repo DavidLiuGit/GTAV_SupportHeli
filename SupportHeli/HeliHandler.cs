@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using GTA;
 using GTA.Math;
+using GTA.Native;
 
 
 namespace GFPS
@@ -23,6 +24,7 @@ namespace GFPS
 		public bool isActive = false;
 		public bool pilotHoldPosition = false;
 		protected bool canRappel = false;
+		protected bool pilotLand = false;
 
 		// consts
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
@@ -39,7 +41,8 @@ namespace GFPS
 
 		#region constructorDestructor
 		/// <summary>
-		/// Instantiate Heli with string settings read in from INi file. If the settings are invalid, use default settings.
+		/// Instantiate Heli  template with string settings read in from INi file. 
+		/// If settings invalid, use default settings.
 		/// </summary>
 		/// <param name="iniName">Model name of </param>
 		/// <param name="iniHeight"></param>
@@ -145,9 +148,9 @@ namespace GFPS
 		/// <summary>
 		/// Perform pre-flight checks, then task the pilot with flying to the player's location.
 		/// </summary>
-		public void flyToPlayer() {
+		public void pilotTasking() {
 			// if heli is not active or pilot is being instructed to hold position, do nothing
-			if (!isActive || pilotHoldPosition)
+			if (!isActive || pilotHoldPosition || pilotLand)
 				return;
 
 			// if heli is not driveable or the pilot is no longer in the heli
@@ -157,18 +160,8 @@ namespace GFPS
 				return;
 			}
 
-			try
-			{
-				Vector3 playerPos = Game.Player.Character.Position;
-				pilot.Task.ChaseWithHelicopter(Game.Player.Character, Helper.getOffsetVector3(height, radius));
-				pilot.AlwaysKeepTask = true;
-			}
-			catch
-			{
-				destructor();
-				throw;
-			}
-
+			// task the pilot with chasing the player
+			pilotTaskChasePed(Game.Player.Character);
 		}
 
 
@@ -182,11 +175,55 @@ namespace GFPS
 			Vector3 positionToHold = Game.Player.Character.Position + Helper.getOffsetVector3(height, radius);
 			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
 		}
+
+
+
+		/// <summary>
+		/// Task the pilot with landing the heli near the <c>Ped</c> specified.
+		/// </summary>
+		/// <param name="p">Ped to land near</param>
+		/// <param name="maxSpeed">max speed</param>
+		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
+		public void landNearPed(Ped p, float maxSpeed = 100f, float targetRadius = 10f)
+		{
+			Vector3 pedPos = p.Position;
+			const int missionFlag = 20;			// 20 = LandNearPed
+			const int landingFlag = 33;			// 32 = Land on destination
+
+			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
+			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
+			 * float landingRadius, float targetHeading, int unk1, int unk2, Hash unk3, int landingFlags)
+			 */
+			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
+				pedPos.X, pedPos.Y, pedPos.Z, missionFlag, maxSpeed,
+				targetRadius, (pedPos - heli.Position).ToHeading(), -1, -1, -1, landingFlag);
+
+			pilotLand = true;
+		}
 		#endregion
 
 
 
 		#region helpers
+		/// <summary>
+		/// Task the heli's pilot with chasing the specified <c>Ped</c>, with some preset offset
+		/// </summary>
+		/// <param name="p">Ped to chase</param>
+		protected void pilotTaskChasePed(Ped p)
+		{
+			try
+			{
+				Vector3 playerPos = p.Position;
+				pilot.Task.ChaseWithHelicopter(p, Helper.getOffsetVector3(height, radius));
+				pilot.AlwaysKeepTask = true;
+			}
+			catch
+			{
+				destructor();
+				throw;
+			}
+		}
+
 		
 		/// <summary>
 		/// Spawn a helicopter at the offset relative to the player.
@@ -230,7 +267,7 @@ namespace GFPS
 			pilot.Weapons.Give(sidearm, 9999, true, true);
 
 			// task pilot with chasing player with heli always
-			flyToPlayer();
+			pilotTasking();
 
 			return pilot;
 		}
@@ -279,6 +316,8 @@ namespace GFPS
 			// automatically select the best weapon
 			crew.Weapons.Select(crew.Weapons.BestWeapon);
 		}
+		#endregion
+
 
 
 		#region virtualHelpers
@@ -290,7 +329,6 @@ namespace GFPS
 		{
 			return new Ped[0];
 		}
-		#endregion
 		#endregion
 	}
 
@@ -483,5 +521,15 @@ namespace GFPS
 		Maverick = -1660661558,
 		Polmav = 353883353,
 		Hunter = -42959138,
+	}
+
+
+
+	public enum HeliPilotTask : int
+	{
+		ChasePed,
+		HoldPosition,
+		Land,
+		FleePed,			// flee from a ped
 	}
 }

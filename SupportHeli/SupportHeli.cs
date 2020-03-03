@@ -68,6 +68,10 @@ namespace GFPS
 				else if (Game.IsKeyPressed(Keys.Delete))
 					cleanUp(false);			// soft clean-up (helis fly away)
 
+				// Home also pressed
+				else if (Game.IsKeyPressed(Keys.PageDown))
+					supportHeli.landNearPed(Game.Player.Character);
+
 				// no modifiers
 				else
 					attackHeli.spawnMannedHeli();
@@ -91,8 +95,8 @@ namespace GFPS
 
 
 			// manipulate the heli if it is active
-			attackHeli.flyToPlayer();
-			supportHeli.flyToPlayer();
+			attackHeli.pilotTasking();
+			supportHeli.pilotTasking();
 
 			// handle ground crew actions
 			updateGroundCrewActions();
