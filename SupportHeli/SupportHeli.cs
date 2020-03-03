@@ -49,24 +49,28 @@ namespace GFPS
 
 		private void onKeyDown(object sender, KeyEventArgs e)
 		{
-			// Shift + activateKey pressed
-			if (e.KeyCode == activateKey && e.Modifiers == Keys.Shift)
+			// activateKey pressed
+			if (e.KeyCode == activateKey)
 			{
-				// if supportHeli is not active, spawn one
-				if (!supportHeli.isActive)
-					supportHeli.spawnMannedHeli();
+				// Shift also pressed
+				if (e.Modifiers == Keys.Shift)
+				{
+					// if supportHeli is not active, spawn one
+					if (!supportHeli.isActive)
+						supportHeli.spawnMannedHeli();
 
-				// otherwise, task gunners with rappeling down
-				gunnersRappelDown();
-			}
+					// otherwise, task gunners with rappeling down
+					else
+						gunnersRappelDown();
+				}
 
-			else if (e.KeyCode == activateKey && Game.IsKeyPressed(Keys.Delete))
-				cleanUp(false);
+				// Delete also pressed
+				else if (Game.IsKeyPressed(Keys.Delete))
+					cleanUp(false);			// soft clean-up (helis fly away)
 
-			// activateKey pressed alone
-			else if (e.KeyCode == activateKey)
-			{
-				attackHeli.spawnMannedHeli();
+				// no modifiers
+				else
+					attackHeli.spawnMannedHeli();
 			}
 
 		}
