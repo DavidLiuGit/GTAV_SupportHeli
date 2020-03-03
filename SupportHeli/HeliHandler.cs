@@ -417,7 +417,7 @@ namespace GFPS
 				while (!res && i < maxConfigureAttempts);
 			}
 
-			GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
+			//GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
 			return newGroundCrew;
 		}
 		#endregion
