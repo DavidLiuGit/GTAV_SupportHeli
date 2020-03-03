@@ -61,7 +61,7 @@ namespace GFPS
 			}
 
 			else if (e.KeyCode == activateKey && Game.IsKeyPressed(Keys.Delete))
-				cleanUp(sender, e);
+				cleanUp(false);
 
 			// activateKey pressed alone
 			else if (e.KeyCode == activateKey)
@@ -173,13 +173,22 @@ namespace GFPS
 		
 		private void cleanUp(object sender, EventArgs e)
 		{
-			// clean up helis; force delete
-			attackHeli.destructor(true);
-			supportHeli.destructor(true);
+			cleanUp(true);
+		}
 
-			// clean up any ground crew; force delete
+		private void cleanUp(bool force)
+		{
+			// clean up helis
+			attackHeli.destructor(force);
+			supportHeli.destructor(force);
+			
+			// clean up any ground crew
+			PedGroup playerPedGrp = Game.Player.Character.PedGroup;
 			foreach (Ped p in groundCrew.Keys.ToArray())
-				CrewHandler.crewDestructor(p, true);
+			{
+				playerPedGrp.Remove(p);			// remove the ped from player's PedGroup
+				CrewHandler.crewDestructor(p, force);
+			}
 		}
 	}
 

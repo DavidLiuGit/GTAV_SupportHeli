@@ -140,8 +140,11 @@ namespace GFPS
 				if (force)
 				{
 					ped.Delete();
-				} else
+				}
+				else
+				{
 					ped.MarkAsNoLongerNeeded();
+				}
 			}
 			catch { }
 		}
