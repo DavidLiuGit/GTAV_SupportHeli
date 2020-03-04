@@ -275,10 +275,10 @@ namespace GFPS
 
 
 		/// <summary>
-		/// 
+		/// Spawn an allied <c>Ped</c> into a seat of the Heli, and give the specified weapons
 		/// </summary>
-		/// <param name="seat"></param>
-		/// <param name="weaponArray"></param>
+		/// <param name="seat">Seat to spawn Ped into</param>
+		/// <param name="weaponArray">Array of <c>WeaponHash</c> to give the gunner</param>
 		/// <returns></returns>
 		protected Ped spawnCrewGunner(VehicleSeat seat, WeaponHash[] weaponArray)
 		{
@@ -308,7 +308,13 @@ namespace GFPS
 
 
 
+		/// <summary>
+		/// Give a specified <c>Ped</c> the specified weapons
+		/// </summary>
+		/// <param name="crew">Ped receiving weapons</param>
+		/// <param name="weaponArray">Array of <c>WeaponHash</c> to assign</param>
 		protected virtual void giveWeapons (Ped crew, WeaponHash[] weaponArray) {
+			// provide the default sidearm
 			crew.Weapons.Give(sidearm, 9999, true, true);
 			foreach (WeaponHash weapon in weaponArray)
 				crew.Weapons.Give(weapon, 9999, true, true);
@@ -530,6 +536,6 @@ namespace GFPS
 		ChasePed,
 		HoldPosition,
 		Land,
-		FleePed,			// flee from a ped
+		FleePed,			// flee from a ped; used during soft delete
 	}
 }
