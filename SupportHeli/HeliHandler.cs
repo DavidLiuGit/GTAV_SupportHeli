@@ -31,7 +31,7 @@ namespace GFPS
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 
 		// object references
-		public Ped leader = Game.Player.Character;
+		public Ped leader;
 		public Vehicle heli;
 		public Ped pilot;
 		public Ped[] passengers;
@@ -40,6 +40,8 @@ namespace GFPS
 
 		// state machines
 		protected HeliPilotTask _pilotTask;
+
+		// accessors & mutators
 		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
 
 
@@ -69,7 +71,8 @@ namespace GFPS
 			bulletproof = bp;
 
 			// instantiate a relationship group
-			rg = Game.Player.Character.RelationshipGroup;
+			leader = Game.Player.Character;
+			rg = leader.RelationshipGroup;
 		}
 
 
@@ -98,7 +101,7 @@ namespace GFPS
 				// if destroying gracefully, command the pilot to fly away. Mark the Heli and crew as no longer needed.
 				else
 				{
-					pilot.Task.FleeFrom(Game.Player.Character);
+					pilot.Task.FleeFrom(leader);
 					pilot.MarkAsNoLongerNeeded();
 					foreach (Ped passenger in passengers)
 						passenger.MarkAsNoLongerNeeded();
@@ -165,14 +168,20 @@ namespace GFPS
 				return;
 			}
 
-			// if nextTask is specified
+			// if nextTask is specified, attempt to make pilot perform that task
 			if (nextTask != null){
-
+				switch (nextTask)
+				{
+					case HeliPilotTask.Land:
+						landNearLeader();
+						break;
+				}
 			}
 
 			// if nextTask is NOT specified (i.e. null)
 			else
 			{
+				// task the pilot based on the currently active task
 				switch (_pilotTask)
 				{
 					case HeliPilotTask.ChasePed:
@@ -190,7 +199,7 @@ namespace GFPS
 		public void holdPositionAbovePlayer()
 		{
 			pilot.AlwaysKeepTask = false;
-			Vector3 positionToHold = Game.Player.Character.Position + Helper.getOffsetVector3(height, radius);
+			Vector3 positionToHold = leader.Position + Helper.getOffsetVector3(height, radius);
 			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
 		}
 
@@ -202,7 +211,7 @@ namespace GFPS
 		/// <param name="p">Ped to land near</param>
 		/// <param name="maxSpeed">max speed</param>
 		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
-		public void landNearPed(float maxSpeed = 100f, float targetRadius = 10f)
+		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 10f)
 		{
 			Vector3 pedPos = leader.Position;
 			const int missionFlag = 20;			// 20 = LandNearPed
@@ -254,7 +263,7 @@ namespace GFPS
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
 			// spawn in heli and apply settings
-			Vehicle heli = World.CreateVehicle((Model)((int)model), Game.Player.Character.Position + offset);
+			Vehicle heli = World.CreateVehicle((Model)((int)model), leader.Position + offset);
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
@@ -277,7 +286,7 @@ namespace GFPS
 		protected Ped spawnPilotIntoHeli()
 		{
 			// spawn pilot & set into heli driver seat
-			Ped pilot = heli.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
+			pilot = heli.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
 			pilot.CanBeDraggedOutOfVehicle = false;
 
 			// create a heli RelationshipGroup and add pilot to it; make heli and player's group allies
@@ -424,11 +433,11 @@ namespace GFPS
 			isAttackHeli = false;
 
 			// get the player's current PedGroup (or create a new one if player is not in one)
-			playerPedGroup = Game.Player.Character.PedGroup;
+			playerPedGroup = leader.PedGroup;
 			if (playerPedGroup == null)
 			{
 				playerPedGroup = new PedGroup();
-				playerPedGroup.Add(Game.Player.Character, true);
+				playerPedGroup.Add(leader, true);
 			}
 			playerPedGroup.SeparationRange = 99999f;
 			playerPedGroup.Formation = Formation.Circle2;

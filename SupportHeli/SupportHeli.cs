@@ -68,9 +68,9 @@ namespace GFPS
 				else if (Game.IsKeyPressed(Keys.Delete))
 					cleanUp(false);			// soft clean-up (helis fly away)
 
-				// Home also pressed
+				// PgDown also pressed
 				else if (Game.IsKeyPressed(Keys.PageDown))
-					supportHeli.landNearPed();
+					supportHeli.pilotTasking(HeliPilotTask.Land);
 
 				// no modifiers
 				else
