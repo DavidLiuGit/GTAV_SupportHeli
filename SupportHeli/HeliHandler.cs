@@ -31,12 +31,16 @@ namespace GFPS
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 
 		// object references
+		public Ped leader = Game.Player.Character;
 		public Vehicle heli;
 		public Ped pilot;
 		public Ped[] passengers;
 		public RelationshipGroup rg;
 		protected Random rng = new Random();
 
+		// state machines
+		protected HeliPilotTask _pilotTask;
+		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
 
 
 		#region constructorDestructor
@@ -146,22 +150,36 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Perform pre-flight checks, then task the pilot with flying to the player's location.
+		/// Perform sanity checks, then assign task to the pilot if necessary
 		/// </summary>
-		public void pilotTasking() {
-			// if heli is not active or pilot is being instructed to hold position, do nothing
-			if (!isActive || pilotHoldPosition || pilotLand)
+		/// <param name="nextTask">Specify to update the pilot's task</param>
+		public void pilotTasking(HeliPilotTask? nextTask = null) {
+			// if heli is not active, do nothing
+			if (!isActive)
 				return;
 
 			// if heli is not driveable or the pilot is no longer in the heli
-			else if (!heli.IsDriveable)
+			else if (!heli.IsDriveable || !pilot.IsInVehicle(heli))
 			{
 				destructor(false);
 				return;
 			}
 
-			// task the pilot with chasing the player
-			pilotTaskChasePed(Game.Player.Character);
+			// if nextTask is specified
+			if (nextTask != null){
+
+			}
+
+			// if nextTask is NOT specified (i.e. null)
+			else
+			{
+				switch (_pilotTask)
+				{
+					case HeliPilotTask.ChasePed:
+						pilotTaskChasePed();
+						break;
+				}
+			}
 		}
 
 
@@ -184,9 +202,9 @@ namespace GFPS
 		/// <param name="p">Ped to land near</param>
 		/// <param name="maxSpeed">max speed</param>
 		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
-		public void landNearPed(Ped p, float maxSpeed = 100f, float targetRadius = 10f)
+		public void landNearPed(float maxSpeed = 100f, float targetRadius = 10f)
 		{
-			Vector3 pedPos = p.Position;
+			Vector3 pedPos = leader.Position;
 			const int missionFlag = 20;			// 20 = LandNearPed
 			const int landingFlag = 33;			// 32 = Land on destination
 
@@ -199,6 +217,7 @@ namespace GFPS
 				targetRadius, (pedPos - heli.Position).ToHeading(), -1, -1, -1, landingFlag);
 
 			pilotLand = true;
+			pilot.BlockPermanentEvents = true;
 		}
 		#endregion
 
@@ -209,12 +228,13 @@ namespace GFPS
 		/// Task the heli's pilot with chasing the specified <c>Ped</c>, with some preset offset
 		/// </summary>
 		/// <param name="p">Ped to chase</param>
-		protected void pilotTaskChasePed(Ped p)
+		protected void pilotTaskChasePed()
 		{
+			_pilotTask = HeliPilotTask.ChasePed;
 			try
 			{
-				Vector3 playerPos = p.Position;
-				pilot.Task.ChaseWithHelicopter(p, Helper.getOffsetVector3(height, radius));
+				Vector3 playerPos = leader.Position;
+				pilot.Task.ChaseWithHelicopter(leader, Helper.getOffsetVector3(height, radius));
 				pilot.AlwaysKeepTask = true;
 			}
 			catch
@@ -267,7 +287,7 @@ namespace GFPS
 			pilot.Weapons.Give(sidearm, 9999, true, true);
 
 			// task pilot with chasing player with heli always
-			pilotTasking();
+			pilotTaskChasePed();
 
 			return pilot;
 		}
@@ -537,5 +557,6 @@ namespace GFPS
 		HoldPosition,
 		Land,
 		FleePed,			// flee from a ped; used during soft delete
+		FlyToDestination,
 	}
 }

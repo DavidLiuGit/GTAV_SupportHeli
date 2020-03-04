@@ -70,7 +70,7 @@ namespace GFPS
 
 				// Home also pressed
 				else if (Game.IsKeyPressed(Keys.PageDown))
-					supportHeli.landNearPed(Game.Player.Character);
+					supportHeli.landNearPed();
 
 				// no modifiers
 				else
