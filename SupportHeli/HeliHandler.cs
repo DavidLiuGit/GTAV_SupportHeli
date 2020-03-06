@@ -172,6 +172,10 @@ namespace GFPS
 			if (nextTask != null){
 				switch (nextTask)
 				{
+					case HeliPilotTask.ChasePed:
+						pilotTaskChasePed();
+						break;
+
 					case HeliPilotTask.Land:
 						landNearLeader();
 						break;
@@ -215,7 +219,7 @@ namespace GFPS
 		{
 			Vector3 pedPos = leader.Position;
 			const int missionFlag = 20;			// 20 = LandNearPed
-			const int landingFlag = 33;			// 32 = Land on destination
+			const int landingFlag = 32;			// 32 = Land on destination
 
 			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
 			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
@@ -225,8 +229,9 @@ namespace GFPS
 				pedPos.X, pedPos.Y, pedPos.Z, missionFlag, maxSpeed,
 				targetRadius, (pedPos - heli.Position).ToHeading(), -1, -1, -1, landingFlag);
 
-			pilotLand = true;
+			// update the pilot's task
 			pilot.BlockPermanentEvents = true;
+			_pilotTask = HeliPilotTask.Land;
 		}
 		#endregion
 
