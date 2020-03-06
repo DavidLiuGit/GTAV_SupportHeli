@@ -29,6 +29,7 @@ namespace GFPS
 		// consts
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
+		protected const float warpIntoDistanceThreshold = 4f;
 
 		// object references
 		public Ped leader;
@@ -173,12 +174,13 @@ namespace GFPS
 				switch (nextTask)
 				{
 					case HeliPilotTask.ChasePed:
-						pilotTaskChasePed();
-						break;
+						pilotTaskChasePed(); break;
 
 					case HeliPilotTask.Land:
-						landNearLeader();
-						break;
+						landNearLeader(); break;
+
+					case HeliPilotTask.FlyToDestination:
+						flyToDestination(null); break;
 				}
 			}
 
@@ -189,8 +191,10 @@ namespace GFPS
 				switch (_pilotTask)
 				{
 					case HeliPilotTask.ChasePed:
-						pilotTaskChasePed();
-						break;
+						pilotTaskChasePed(); break;
+
+					case HeliPilotTask.Land:
+						heliLandingHandler(); break;
 				}
 			}
 		}
@@ -219,19 +223,54 @@ namespace GFPS
 		{
 			Vector3 pedPos = leader.Position;
 			const int missionFlag = 20;			// 20 = LandNearPed
-			const int landingFlag = 32;			// 32 = Land on destination
+			const int landingFlag = 8225;			// 32 = Land on destination
 
 			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
 			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
 			 * float landingRadius, float targetHeading, int unk1, int unk2, Hash unk3, int landingFlags)
 			 */
 			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
-				pedPos.X, pedPos.Y, pedPos.Z, missionFlag, maxSpeed,
+				pedPos.X, pedPos.Y, pedPos.Z - 5f, missionFlag, maxSpeed,
 				targetRadius, (pedPos - heli.Position).ToHeading(), -1, -1, -1, landingFlag);
 
 			// update the pilot's task
 			pilot.BlockPermanentEvents = true;
 			_pilotTask = HeliPilotTask.Land;
+		}
+
+
+
+		/// <summary>
+		/// Fly to the destination. If no destination is specified, fly to waypoint. If no
+		/// waypoint is set, hover above the ground in the current position.
+		/// </summary>
+		public void flyToDestination(Vector3? destination = null, float maxSpeed = 100f)
+		{
+			_pilotTask = HeliPilotTask.FlyToDestination;
+			Vector3 target;
+
+			// if a destination was specified, fly there
+			if (destination != null)
+				target = destination ?? Vector3.Zero;
+
+			// if no destination was specified, but a waypoint is active, fly to waypoint
+			else if (Game.IsWaypointActive)
+			{
+				target = World.WaypointPosition;
+			}
+
+			// otherwise, set the target to some point above the current position
+			else
+				target = heli.Position + Helper.getOffsetVector3(height);
+
+
+			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
+			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
+			 * float landingRadius, float targetHeading, int unk1, int unk2, Hash unk3, int landingFlags)
+			 */
+			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
+				target.X, target.Y, target.Z, 4, maxSpeed,
+				10f, (heli.Position - heli.Position).ToHeading(), -1, -1, -1, 0);
 		}
 		#endregion
 
@@ -368,6 +407,29 @@ namespace GFPS
 		protected virtual Ped[] spawnCrewIntoHeli()
 		{
 			return new Ped[0];
+		}
+
+
+
+		/// <summary>
+		/// If the leader is close enough to the heli, and is close enough to the heli, set the leader
+		/// into the hlicopter 
+		/// </summary>
+		protected virtual void heliLandingHandler(VehicleSeat preferredSeat = VehicleSeat.Passenger, bool cmdRequired = true)
+		{
+			// check if leader is close enough to the heli
+			if (leader.Position.DistanceTo(heli.Position) < warpIntoDistanceThreshold)
+			{
+				// if the "enter vehicle" command is required, but was not pressed, do nothing
+				if (cmdRequired && !Game.IsControlPressed(Control.Enter))
+					return;
+
+				// set the leader into the heli on the preferredSeat
+				leader.SetIntoVehicle(heli, preferredSeat);
+
+				// once leader is in the vehicle, command the pilot to fly to some destination
+				pilotTasking(HeliPilotTask.FlyToDestination);
+			}
 		}
 		#endregion
 	}
