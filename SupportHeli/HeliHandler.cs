@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using GTA;
 using GTA.Math;
+using GTA.Native;
 
 
 namespace GFPS
@@ -23,23 +24,42 @@ namespace GFPS
 		public bool isActive = false;
 		public bool pilotHoldPosition = false;
 		protected bool canRappel = false;
+		protected bool pilotLand = false;
 
 		// consts
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
+		protected const float warpIntoDistanceThreshold = 4f;
 
 		// object references
+		public Ped leader;
 		public Vehicle heli;
 		public Ped pilot;
 		public Ped[] passengers;
 		public RelationshipGroup rg;
 		protected Random rng = new Random();
 
+		// state machines
+		protected HeliPilotTask _pilotTask;
+
+		// accessors & mutators
+		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
+
+		// pilot tasking
+		public enum HeliPilotTask : int
+		{
+			ChasePed,
+			HoldPosition,
+			Land,
+			FleePed,			// flee from a ped; used during soft delete
+			FlyToDestination,
+		}
 
 
 		#region constructorDestructor
 		/// <summary>
-		/// Instantiate Heli with string settings read in from INi file. If the settings are invalid, use default settings.
+		/// Instantiate Heli  template with string settings read in from INi file. 
+		/// If settings invalid, use default settings.
 		/// </summary>
 		/// <param name="iniName">Model name of </param>
 		/// <param name="iniHeight"></param>
@@ -62,7 +82,8 @@ namespace GFPS
 			bulletproof = bp;
 
 			// instantiate a relationship group
-			rg = Game.Player.Character.RelationshipGroup;
+			leader = Game.Player.Character;
+			rg = leader.RelationshipGroup;
 		}
 
 
@@ -91,7 +112,7 @@ namespace GFPS
 				// if destroying gracefully, command the pilot to fly away. Mark the Heli and crew as no longer needed.
 				else
 				{
-					pilot.Task.FleeFrom(Game.Player.Character);
+					pilot.Task.FleeFrom(leader);
 					pilot.MarkAsNoLongerNeeded();
 					foreach (Ped passenger in passengers)
 						passenger.MarkAsNoLongerNeeded();
@@ -143,32 +164,49 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Perform pre-flight checks, then task the pilot with flying to the player's location.
+		/// Perform sanity checks, then assign task to the pilot if necessary
 		/// </summary>
-		public void flyToPlayer() {
-			// if heli is not active or pilot is being instructed to hold position, do nothing
-			if (!isActive || pilotHoldPosition)
+		/// <param name="nextTask">Specify to update the pilot's task</param>
+		public void pilotTasking(HeliPilotTask? nextTask = null) {
+			// if heli is not active, do nothing
+			if (!isActive)
 				return;
 
 			// if heli is not driveable or the pilot is no longer in the heli
-			else if (!heli.IsDriveable)
+			else if (!heli.IsDriveable || !pilot.IsInVehicle(heli))
 			{
 				destructor(false);
 				return;
 			}
 
-			try
-			{
-				Vector3 playerPos = Game.Player.Character.Position;
-				pilot.Task.ChaseWithHelicopter(Game.Player.Character, Helper.getOffsetVector3(height, radius));
-				pilot.AlwaysKeepTask = true;
-			}
-			catch
-			{
-				destructor();
-				throw;
+			// if nextTask is specified, attempt to make pilot perform that task
+			if (nextTask != null){
+				switch (nextTask)
+				{
+					case HeliPilotTask.ChasePed:
+						pilotTaskChasePed(); break;
+
+					case HeliPilotTask.Land:
+						landNearLeader(); break;
+
+					case HeliPilotTask.FlyToDestination:
+						flyToDestination(null); break;
+				}
 			}
 
+			// if nextTask is NOT specified (i.e. null)
+			else
+			{
+				// task the pilot based on the currently active task
+				switch (_pilotTask)
+				{
+					case HeliPilotTask.ChasePed:
+						pilotTaskChasePed(); break;
+
+					case HeliPilotTask.Land:
+						heliLandingHandler(); break;
+				}
+			}
 		}
 
 
@@ -179,14 +217,102 @@ namespace GFPS
 		public void holdPositionAbovePlayer()
 		{
 			pilot.AlwaysKeepTask = false;
-			Vector3 positionToHold = Game.Player.Character.Position + Helper.getOffsetVector3(height, radius);
+			Vector3 positionToHold = leader.Position + Helper.getOffsetVector3(height, radius);
 			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
+		}
+
+
+
+		/// <summary>
+		/// Task the pilot with landing the heli near the <c>Ped</c> specified.
+		/// </summary>
+		/// <param name="p">Ped to land near</param>
+		/// <param name="maxSpeed">max speed</param>
+		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
+		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 20f, bool verbose = true)
+		{
+			Vector3 pedPos = Helper.getVector3NearTarget(targetRadius, leader.Position);
+			const int missionFlag = 20;			// 20 = LandNearPed
+			const int landingFlag = 8225;			// 32 = Land on destination
+
+			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
+			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
+			 * float landingRadius, float targetHeading, int unk1, int unk2, Hash unk3, int landingFlags)
+			 */
+			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
+				pedPos.X, pedPos.Y, pedPos.Z - 5f, missionFlag, maxSpeed,
+				targetRadius, (pedPos - heli.Position).ToHeading(), -1, -1, -1, landingFlag);
+
+			// update the pilot's task
+			pilot.BlockPermanentEvents = true;
+			_pilotTask = HeliPilotTask.Land;
+			if (verbose) GTA.UI.Notification.Show("Heli: landing near player");
+		}
+
+
+
+		/// <summary>
+		/// Fly to the destination. If no destination is specified, fly to waypoint. If no
+		/// waypoint is set, hover above the ground in the current position.
+		/// </summary>
+		public void flyToDestination(Vector3? destination = null, float maxSpeed = 100f)
+		{
+			_pilotTask = HeliPilotTask.FlyToDestination;
+			Vector3 target;
+
+			// if a destination was specified, fly there
+			if (destination != null)
+				target = destination ?? Vector3.Zero;
+
+			// if no destination was specified, but a waypoint is active, fly to waypoint
+			else if (Game.IsWaypointActive)
+			{
+				target = World.WaypointPosition;
+				GTA.UI.Notification.Show("Support Heli: flying to waypoint");
+			}
+
+			// otherwise, set the target to some point above the current position
+			else
+			{
+				target = heli.Position + Helper.getOffsetVector3(height);
+				GTA.UI.Notification.Show("Support Heli: hovering. ");
+			}
+
+
+			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
+			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
+			 * float landingRadius, float targetHeading, int unk1, int unk2, Hash unk3, int landingFlags)
+			 */
+			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
+				target.X, target.Y, target.Z, 4, maxSpeed,
+				10f, (target - heli.Position).ToHeading(), 40, 40, -1, 0);
 		}
 		#endregion
 
 
 
+
 		#region helpers
+		/// <summary>
+		/// Task the heli's pilot with chasing the specified <c>Ped</c>, with some preset offset
+		/// </summary>
+		/// <param name="p">Ped to chase</param>
+		protected void pilotTaskChasePed()
+		{
+			_pilotTask = HeliPilotTask.ChasePed;
+			try
+			{
+				Vector3 playerPos = leader.Position;
+				pilot.Task.ChaseWithHelicopter(leader, Helper.getOffsetVector3(height, radius));
+				pilot.AlwaysKeepTask = true;
+			}
+			catch
+			{
+				destructor();
+				throw;
+			}
+		}
+
 		
 		/// <summary>
 		/// Spawn a helicopter at the offset relative to the player.
@@ -197,7 +323,7 @@ namespace GFPS
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
 			// spawn in heli and apply settings
-			Vehicle heli = World.CreateVehicle((Model)((int)model), Game.Player.Character.Position + offset);
+			Vehicle heli = World.CreateVehicle((Model)((int)model), leader.Position + offset);
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
@@ -220,7 +346,7 @@ namespace GFPS
 		protected Ped spawnPilotIntoHeli()
 		{
 			// spawn pilot & set into heli driver seat
-			Ped pilot = heli.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
+			pilot = heli.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
 			pilot.CanBeDraggedOutOfVehicle = false;
 
 			// create a heli RelationshipGroup and add pilot to it; make heli and player's group allies
@@ -230,7 +356,7 @@ namespace GFPS
 			pilot.Weapons.Give(sidearm, 9999, true, true);
 
 			// task pilot with chasing player with heli always
-			flyToPlayer();
+			pilotTaskChasePed();
 
 			return pilot;
 		}
@@ -238,10 +364,10 @@ namespace GFPS
 
 
 		/// <summary>
-		/// 
+		/// Spawn an allied <c>Ped</c> into a seat of the Heli, and give the specified weapons
 		/// </summary>
-		/// <param name="seat"></param>
-		/// <param name="weaponArray"></param>
+		/// <param name="seat">Seat to spawn Ped into</param>
+		/// <param name="weaponArray">Array of <c>WeaponHash</c> to give the gunner</param>
 		/// <returns></returns>
 		protected Ped spawnCrewGunner(VehicleSeat seat, WeaponHash[] weaponArray)
 		{
@@ -271,7 +397,13 @@ namespace GFPS
 
 
 
+		/// <summary>
+		/// Give a specified <c>Ped</c> the specified weapons
+		/// </summary>
+		/// <param name="crew">Ped receiving weapons</param>
+		/// <param name="weaponArray">Array of <c>WeaponHash</c> to assign</param>
 		protected virtual void giveWeapons (Ped crew, WeaponHash[] weaponArray) {
+			// provide the default sidearm
 			crew.Weapons.Give(sidearm, 9999, true, true);
 			foreach (WeaponHash weapon in weaponArray)
 				crew.Weapons.Give(weapon, 9999, true, true);
@@ -279,6 +411,8 @@ namespace GFPS
 			// automatically select the best weapon
 			crew.Weapons.Select(crew.Weapons.BestWeapon);
 		}
+		#endregion
+
 
 
 		#region virtualHelpers
@@ -290,7 +424,29 @@ namespace GFPS
 		{
 			return new Ped[0];
 		}
-		#endregion
+
+
+
+		/// <summary>
+		/// If the leader is close enough to the heli, and is close enough to the heli, set the leader
+		/// into the hlicopter 
+		/// </summary>
+		protected virtual void heliLandingHandler(VehicleSeat preferredSeat = VehicleSeat.Passenger, bool cmdRequired = true)
+		{
+			// check if leader is close enough to the heli
+			if (leader.Position.DistanceTo(heli.Position) < warpIntoDistanceThreshold)
+			{
+				// if the "enter vehicle" command is required, but was not pressed, do nothing
+				if (cmdRequired && !Game.IsControlPressed(Control.Enter))
+					return;
+
+				// set the leader into the heli on the preferredSeat
+				leader.SetIntoVehicle(heli, preferredSeat);
+
+				// once leader is in the vehicle, command the pilot to fly to some destination
+				pilotTasking(HeliPilotTask.FlyToDestination);
+			}
+		}
 		#endregion
 	}
 
@@ -360,11 +516,11 @@ namespace GFPS
 			isAttackHeli = false;
 
 			// get the player's current PedGroup (or create a new one if player is not in one)
-			playerPedGroup = Game.Player.Character.PedGroup;
+			playerPedGroup = leader.PedGroup;
 			if (playerPedGroup == null)
 			{
 				playerPedGroup = new PedGroup();
-				playerPedGroup.Add(Game.Player.Character, true);
+				playerPedGroup.Add(leader, true);
 			}
 			playerPedGroup.SeparationRange = 99999f;
 			playerPedGroup.Formation = Formation.Circle2;

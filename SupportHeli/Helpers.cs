@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using GTA;
 using GTA.Math;
+using GTA.Native;
+
 
 namespace GFPS
 {
@@ -72,5 +74,14 @@ namespace GFPS
 			0x7EA26372,		// prisoners
 			0x8296713E,		// dealers
 		};
+
+
+
+		public static void allyRelationshipGroups(int rg1Hash, int rg2Hash)
+		{
+			//void SET_RELATIONSHIP_BETWEEN_GROUPS(int relationship, Hash group1, Hash group2)
+			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg1Hash, rg2Hash);
+			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg2Hash, rg1Hash);
+		}
 	}
 }
