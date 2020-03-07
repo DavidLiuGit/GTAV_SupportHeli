@@ -70,7 +70,15 @@ namespace GFPS
 
 				// PgDown also pressed
 				else if (Game.IsKeyPressed(Keys.PageDown))
-					supportHeli.pilotTasking(HeliPilotTask.Land);
+					supportHeli.pilotTasking(Heli.HeliPilotTask.Land);
+
+				// PgUp also pressed
+				else if (Game.IsKeyPressed(Keys.PageUp))
+					supportHeli.pilotTasking(Heli.HeliPilotTask.ChasePed);
+
+				// Tab also pressed
+				else if (Game.IsKeyPressed(Keys.Tab))
+					supportHeli.pilotTasking(Heli.HeliPilotTask.FlyToDestination);
 
 				// no modifiers
 				else

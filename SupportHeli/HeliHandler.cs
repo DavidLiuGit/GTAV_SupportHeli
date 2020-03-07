@@ -45,6 +45,16 @@ namespace GFPS
 		// accessors & mutators
 		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
 
+		// pilot tasking
+		public enum HeliPilotTask : int
+		{
+			ChasePed,
+			HoldPosition,
+			Land,
+			FleePed,			// flee from a ped; used during soft delete
+			FlyToDestination,
+		}
+
 
 		#region constructorDestructor
 		/// <summary>
@@ -219,9 +229,9 @@ namespace GFPS
 		/// <param name="p">Ped to land near</param>
 		/// <param name="maxSpeed">max speed</param>
 		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
-		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 10f)
+		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 20f, bool verbose = true)
 		{
-			Vector3 pedPos = leader.Position;
+			Vector3 pedPos = Helper.getVector3NearTarget(targetRadius, leader.Position);
 			const int missionFlag = 20;			// 20 = LandNearPed
 			const int landingFlag = 8225;			// 32 = Land on destination
 
@@ -236,6 +246,7 @@ namespace GFPS
 			// update the pilot's task
 			pilot.BlockPermanentEvents = true;
 			_pilotTask = HeliPilotTask.Land;
+			if (verbose) GTA.UI.Notification.Show("Heli: landing near player");
 		}
 
 
@@ -257,11 +268,15 @@ namespace GFPS
 			else if (Game.IsWaypointActive)
 			{
 				target = World.WaypointPosition;
+				GTA.UI.Notification.Show("Support Heli: flying to waypoint");
 			}
 
 			// otherwise, set the target to some point above the current position
 			else
+			{
 				target = heli.Position + Helper.getOffsetVector3(height);
+				GTA.UI.Notification.Show("Support Heli: hovering. ");
+			}
 
 
 			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
@@ -270,9 +285,10 @@ namespace GFPS
 			 */
 			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
 				target.X, target.Y, target.Z, 4, maxSpeed,
-				10f, (heli.Position - heli.Position).ToHeading(), -1, -1, -1, 0);
+				10f, (target - heli.Position).ToHeading(), 40, 40, -1, 0);
 		}
 		#endregion
+
 
 
 
@@ -623,16 +639,5 @@ namespace GFPS
 		Maverick = -1660661558,
 		Polmav = 353883353,
 		Hunter = -42959138,
-	}
-
-
-
-	public enum HeliPilotTask : int
-	{
-		ChasePed,
-		HoldPosition,
-		Land,
-		FleePed,			// flee from a ped; used during soft delete
-		FlyToDestination,
 	}
 }
