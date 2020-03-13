@@ -57,7 +57,7 @@ namespace GFPS
 				{
 					// if supportHeli is not active, spawn one
 					if (!supportHeli.isActive)
-						supportHeli.spawnMannedHeli();
+						supportHeli.spawnMannedHeli(Game.Player.Character);
 
 					// otherwise, task gunners with rappeling down
 					else
@@ -82,7 +82,7 @@ namespace GFPS
 
 				// no modifiers
 				else
-					attackHeli.spawnMannedHeli();
+					attackHeli.spawnMannedHeli(Game.Player.Character);
 			}
 
 		}
