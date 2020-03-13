@@ -21,8 +21,7 @@ namespace GFPS
 
 		// flags 
 		protected bool isAttackHeli;
-		public bool isActive = false;
-		public bool pilotHoldPosition = false;
+		protected bool _isActive = false;
 		protected bool canRappel = false;
 		protected bool pilotLand = false;
 
@@ -43,8 +42,9 @@ namespace GFPS
 		protected HeliPilotTask _pilotTask;
 
 		// accessors & mutators
-		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
+		public HeliPilotTask pilotTask { get { return _pilotTask; }	}
 		public Ped leader { get { return _leader; } }
+		public bool isActive { get { return _isActive; } }
 
 		// pilot tasking
 		public enum HeliPilotTask : int
@@ -94,7 +94,7 @@ namespace GFPS
 		/// <param name="force">If <c>true</c>, all occupants (pilot & crew) will be deleted as well</param>
 		public void destructor(bool force = false)
 		{
-			isActive = false;
+			_isActive = false;
 
 			try
 			{
@@ -134,7 +134,7 @@ namespace GFPS
 		public Vehicle spawnMannedHeli()
 		{
 			// if a heli is already active, return immediately
-			if (isActive)
+			if (_isActive)
 			{
 				GTA.UI.Notification.Show("Heli is already active.");
 			}
@@ -145,7 +145,7 @@ namespace GFPS
 				heli = spawnHeli(Helper.getOffsetVector3(height, radius));
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
-				isActive = true;
+				_isActive = true;
 			}
 			
 			return this.heli;
@@ -180,7 +180,7 @@ namespace GFPS
 		/// <param name="nextTask">Specify to update the pilot's task</param>
 		public void pilotTasking(HeliPilotTask? nextTask = null) {
 			// if heli is not active, do nothing
-			if (!isActive)
+			if (!_isActive)
 				return;
 
 			// if heli is not driveable or the pilot is no longer in the heli
