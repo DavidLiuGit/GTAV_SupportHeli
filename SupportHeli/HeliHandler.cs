@@ -29,6 +29,7 @@ namespace GFPS
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 		protected const float warpIntoDistanceThreshold = 4f;
+		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different height
 
 		// object references
 		protected Ped _leader;
@@ -135,9 +136,7 @@ namespace GFPS
 		{
 			// if a heli is already active, return immediately
 			if (_isActive)
-			{
 				GTA.UI.Notification.Show("Heli is already active.");
-			}
 
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
@@ -289,6 +288,7 @@ namespace GFPS
 				GTA.UI.Notification.Show("Support Heli: hovering. ");
 			}
 
+			int cruiseAltitude = Convert.ToInt32(cruiseAltitudeMultiplier * height);
 
 			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
 			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
@@ -296,7 +296,7 @@ namespace GFPS
 			 */
 			Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, 0,
 				target.X, target.Y, target.Z, 4, maxSpeed,
-				10f, (target - heli.Position).ToHeading(), 40, 40, -1, 0);
+				10f, (target - heli.Position).ToHeading(), cruiseAltitude, cruiseAltitude, -1, 0);
 		}
 		#endregion
 
@@ -334,7 +334,6 @@ namespace GFPS
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
 			// spawn in heli and apply settings
-			GTA.UI.Notification.Show("Leader pos: " + _leader.Position);
 			Vehicle heli = World.CreateVehicle((Model)((int)model), _leader.Position + offset);
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
