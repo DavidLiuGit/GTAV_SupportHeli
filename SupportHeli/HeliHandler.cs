@@ -32,7 +32,7 @@ namespace GFPS
 		protected const float warpIntoDistanceThreshold = 4f;
 
 		// object references
-		public Ped leader;
+		protected Ped _leader;
 		public Vehicle heli;
 		public Ped pilot;
 		public Ped[] passengers;
@@ -44,6 +44,7 @@ namespace GFPS
 
 		// accessors & mutators
 		public HeliPilotTask pilotTask { get { return _pilotTask; }	}		// _pilotTask accessor
+		public Ped leader { get { return _leader; } }
 
 		// pilot tasking
 		public enum HeliPilotTask : int
@@ -82,8 +83,8 @@ namespace GFPS
 			bulletproof = bp;
 
 			// instantiate a relationship group
-			leader = Game.Player.Character;
-			rg = leader.RelationshipGroup;
+			_leader = Game.Player.Character;
+			rg = _leader.RelationshipGroup;
 		}
 
 
@@ -112,7 +113,7 @@ namespace GFPS
 				// if destroying gracefully, command the pilot to fly away. Mark the Heli and crew as no longer needed.
 				else
 				{
-					pilot.Task.FleeFrom(leader);
+					pilot.Task.FleeFrom(_leader);
 					pilot.MarkAsNoLongerNeeded();
 					foreach (Ped passenger in passengers)
 						passenger.MarkAsNoLongerNeeded();
@@ -149,6 +150,16 @@ namespace GFPS
 			
 			return this.heli;
 		}
+
+
+
+
+		public Vehicle spawnMannedHeli(Ped leader)
+		{
+			_leader = leader;
+			return spawnMannedHeli();
+		}
+
 
 
 		/// <summary>
@@ -217,7 +228,7 @@ namespace GFPS
 		public void holdPositionAbovePlayer()
 		{
 			pilot.AlwaysKeepTask = false;
-			Vector3 positionToHold = leader.Position + Helper.getOffsetVector3(height, radius);
+			Vector3 positionToHold = _leader.Position + Helper.getOffsetVector3(height, radius);
 			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
 		}
 
@@ -231,7 +242,7 @@ namespace GFPS
 		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
 		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 20f, bool verbose = true)
 		{
-			Vector3 pedPos = Helper.getVector3NearTarget(targetRadius, leader.Position);
+			Vector3 pedPos = Helper.getVector3NearTarget(targetRadius, _leader.Position);
 			const int missionFlag = 20;			// 20 = LandNearPed
 			const int landingFlag = 8225;			// 32 = Land on destination
 
@@ -302,8 +313,8 @@ namespace GFPS
 			_pilotTask = HeliPilotTask.ChasePed;
 			try
 			{
-				Vector3 playerPos = leader.Position;
-				pilot.Task.ChaseWithHelicopter(leader, Helper.getOffsetVector3(height, radius));
+				Vector3 playerPos = _leader.Position;
+				pilot.Task.ChaseWithHelicopter(_leader, Helper.getOffsetVector3(height, radius));
 				pilot.AlwaysKeepTask = true;
 			}
 			catch
@@ -323,7 +334,8 @@ namespace GFPS
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
 			// spawn in heli and apply settings
-			Vehicle heli = World.CreateVehicle((Model)((int)model), leader.Position + offset);
+			GTA.UI.Notification.Show("Leader pos: " + _leader.Position);
+			Vehicle heli = World.CreateVehicle((Model)((int)model), _leader.Position + offset);
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
@@ -428,22 +440,22 @@ namespace GFPS
 
 
 		/// <summary>
-		/// If the leader is close enough to the heli, and is close enough to the heli, set the leader
+		/// If the _leader is close enough to the heli, and is close enough to the heli, set the _leader
 		/// into the hlicopter 
 		/// </summary>
 		protected virtual void heliLandingHandler(VehicleSeat preferredSeat = VehicleSeat.Passenger, bool cmdRequired = true)
 		{
-			// check if leader is close enough to the heli
-			if (leader.Position.DistanceTo(heli.Position) < warpIntoDistanceThreshold)
+			// check if _leader is close enough to the heli
+			if (_leader.Position.DistanceTo(heli.Position) < warpIntoDistanceThreshold)
 			{
 				// if the "enter vehicle" command is required, but was not pressed, do nothing
 				if (cmdRequired && !Game.IsControlPressed(Control.Enter))
 					return;
 
-				// set the leader into the heli on the preferredSeat
-				leader.SetIntoVehicle(heli, preferredSeat);
+				// set the _leader into the heli on the preferredSeat
+				_leader.SetIntoVehicle(heli, preferredSeat);
 
-				// once leader is in the vehicle, command the pilot to fly to some destination
+				// once _leader is in the vehicle, command the pilot to fly to some destination
 				pilotTasking(HeliPilotTask.FlyToDestination);
 			}
 		}
@@ -516,11 +528,11 @@ namespace GFPS
 			isAttackHeli = false;
 
 			// get the player's current PedGroup (or create a new one if player is not in one)
-			playerPedGroup = leader.PedGroup;
+			playerPedGroup = _leader.PedGroup;
 			if (playerPedGroup == null)
 			{
 				playerPedGroup = new PedGroup();
-				playerPedGroup.Add(leader, true);
+				playerPedGroup.Add(_leader, true);
 			}
 			playerPedGroup.SeparationRange = 99999f;
 			playerPedGroup.Formation = Formation.Circle2;
