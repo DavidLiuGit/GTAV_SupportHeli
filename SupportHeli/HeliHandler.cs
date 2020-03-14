@@ -50,7 +50,7 @@ namespace GFPS
 		// pilot tasking
 		public enum HeliPilotTask : int
 		{
-			ChasePed,
+			ChaseLeader,
 			HoldPosition,
 			Land,
 			FleePed,			// flee from a ped; used during soft delete
@@ -63,10 +63,10 @@ namespace GFPS
 		/// Instantiate Heli  template with string settings read in from INi file. 
 		/// If settings invalid, use default settings.
 		/// </summary>
-		/// <param name="iniName">Model name of </param>
-		/// <param name="iniHeight"></param>
-		/// <param name="iniRadius"></param>
-		/// <param name="iniBulletproof"></param>
+		/// <param name="iniName">Model name of the helicopter to use</param>
+		/// <param name="iniHeight">hover height of the helicopter</param>
+		/// <param name="iniRadius">hover radius of the helicopter</param>
+		/// <param name="iniBulletproof">Whether the helicopter is bulletproof</param>
 		public Heli(string iniName, string iniHeight, string iniRadius, string iniBulletproof)
 			: this (
 				(HeliModel) Enum.Parse(typeof(HeliModel), iniName ?? "Akula" ),
@@ -150,9 +150,11 @@ namespace GFPS
 			return this.heli;
 		}
 
-
-
-
+		/// <summary>
+		/// Spawn in a helicopter that follows the specified <c>Ped</c>, along with helicopter's pilot
+		/// </summary>
+		/// <param name="leader"><c>Ped</c> to follow</param>
+		/// <returns></returns>
 		public Vehicle spawnMannedHeli(Ped leader)
 		{
 			_leader = leader;
@@ -193,7 +195,7 @@ namespace GFPS
 			if (nextTask != null){
 				switch (nextTask)
 				{
-					case HeliPilotTask.ChasePed:
+					case HeliPilotTask.ChaseLeader:
 						pilotTaskChasePed(); break;
 
 					case HeliPilotTask.Land:
@@ -210,7 +212,7 @@ namespace GFPS
 				// task the pilot based on the currently active task
 				switch (_pilotTask)
 				{
-					case HeliPilotTask.ChasePed:
+					case HeliPilotTask.ChaseLeader:
 						pilotTaskChasePed(); break;
 
 					case HeliPilotTask.Land:
@@ -310,7 +312,7 @@ namespace GFPS
 		/// <param name="p">Ped to chase</param>
 		protected void pilotTaskChasePed()
 		{
-			_pilotTask = HeliPilotTask.ChasePed;
+			_pilotTask = HeliPilotTask.ChaseLeader;
 			try
 			{
 				Vector3 playerPos = _leader.Position;
@@ -514,7 +516,7 @@ namespace GFPS
 		// by default, give each (non-copilot) crew heavy weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Heavy];
 		const float blipScale = 0.7f;
-		public PedGroup playerPedGroup;
+		public PedGroup leaderPedGroup;
 		protected const int maxConfigureAttempts = 5;
 		
 		protected int seatIndex = 0;
@@ -527,14 +529,14 @@ namespace GFPS
 			isAttackHeli = false;
 
 			// get the player's current PedGroup (or create a new one if player is not in one)
-			playerPedGroup = _leader.PedGroup;
-			if (playerPedGroup == null)
+			leaderPedGroup = _leader.PedGroup;
+			if (leaderPedGroup == null)
 			{
-				playerPedGroup = new PedGroup();
-				playerPedGroup.Add(_leader, true);
+				leaderPedGroup = new PedGroup();
+				leaderPedGroup.Add(_leader, true);
 			}
-			playerPedGroup.SeparationRange = 99999f;
-			playerPedGroup.Formation = Formation.Circle2;
+			leaderPedGroup.SeparationRange = 99999f;
+			leaderPedGroup.Formation = Formation.Circle2;
 
 			// set the list of seats (based on helicopter model, but temporarily all the same)
 			seatSelection = new VehicleSeat[] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
@@ -584,7 +586,7 @@ namespace GFPS
 				while (!res && i < maxConfigureAttempts);
 			}
 
-			//GTA.UI.Notification.Show("Active Ground Crew: " + playerPedGroup.MemberCount);
+			//GTA.UI.Notification.Show("Active Ground Crew: " + leaderPedGroup.MemberCount);
 			return newGroundCrew;
 		}
 		#endregion
@@ -621,10 +623,15 @@ namespace GFPS
 
 
 
+		/// <summary>
+		/// Apply configurations to ground crew
+		/// </summary>
+		/// <param name="crew"><c>Ped</c> to apply configuration to</param>
+		/// <returns><c>true</c> if the specified <c>Ped</c> is in the leader's PedGroup</returns>
 		protected bool configureGroundCrew(Ped crew)
 		{
 			// add to player's PedGroup if there is space
-			playerPedGroup.Add(crew, false);
+			leaderPedGroup.Add(crew, false);
 			crew.NeverLeavesGroup = true;
 
 			// verify that the crew is part of the player's PedGroup
