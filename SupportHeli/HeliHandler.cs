@@ -57,6 +57,7 @@ namespace GFPS
 			FlyToDestination,
 		}
 
+		
 
 		#region constructorDestructor
 		/// <summary>
@@ -287,7 +288,7 @@ namespace GFPS
 			else
 			{
 				target = heli.Position + Helper.getOffsetVector3(height);
-				GTA.UI.Notification.Show("Support Heli: hovering. ");
+				GTA.UI.Notification.Show("Support Heli: hovering.");
 			}
 
 			int cruiseAltitude = Convert.ToInt32(cruiseAltitudeMultiplier * height);
@@ -456,8 +457,12 @@ namespace GFPS
 				// set the _leader into the heli on the preferredSeat
 				_leader.SetIntoVehicle(heli, preferredSeat);
 
-				// once _leader is in the vehicle, command the pilot to fly to some destination
-				pilotTasking(HeliPilotTask.FlyToDestination);
+				// task each Ground crew member with entering the heli with the player
+				foreach (Ped p in _leader.PedGroup.ToList(false))
+					p.Task.EnterVehicle(heli, VehicleSeat.Any, -1, 2f);
+
+				// once _leader is in the vehicle, display help message
+				GTA.UI.Notification.Show("Press Tab+F10 (or your custom activation key) to fly to waypoint or hover");
 			}
 		}
 		#endregion
@@ -586,7 +591,7 @@ namespace GFPS
 				while (!res && i < maxConfigureAttempts);
 			}
 
-			//GTA.UI.Notification.Show("Active Ground Crew: " + leaderPedGroup.MemberCount);
+			GTA.UI.Notification.Show("Active Ground Crew: " + leaderPedGroup.MemberCount);
 			return newGroundCrew;
 		}
 		#endregion
