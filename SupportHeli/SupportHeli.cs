@@ -74,7 +74,7 @@ namespace GFPS
 
 				// PgUp also pressed
 				else if (Game.IsKeyPressed(Keys.PageUp))
-					supportHeli.pilotTasking(Heli.HeliPilotTask.ChasePed);
+					supportHeli.pilotTasking(Heli.HeliPilotTask.ChaseLeader);
 
 				// Tab also pressed
 				else if (Game.IsKeyPressed(Keys.Tab))
@@ -159,7 +159,7 @@ namespace GFPS
 		{
 			// make sure there are gunners in the crew seats
 			Ped[] crew = supportHeli.groundCrewRappelDown(crewSettings);
-			
+
 			foreach (Ped gunner in crew)
 				groundCrew.Add(gunner, GroundCrewAction.Descending);
 		}
@@ -207,7 +207,6 @@ namespace GFPS
 			}
 		}
 	}
-
 }
 
 
