@@ -38,6 +38,7 @@ namespace GFPS
 		public Ped[] passengers;
 		public RelationshipGroup rg;
 		protected Random rng = new Random();
+		protected Ped _targetedPed;
 
 		// state machines
 		protected HeliPilotTask _pilotTask;
@@ -55,6 +56,7 @@ namespace GFPS
 			Land,
 			FleePed,			// flee from a ped; used during soft delete
 			FlyToDestination,
+			ChaseEngagePed,
 		}
 
 		
@@ -204,6 +206,9 @@ namespace GFPS
 
 					case HeliPilotTask.FlyToDestination:
 						flyToDestination(null); break;
+
+					case HeliPilotTask.ChaseEngagePed:
+						chaseAndEngageTargetedPed(); break;
 				}
 			}
 
@@ -220,6 +225,15 @@ namespace GFPS
 						heliLandingHandler(); break;
 				}
 			}
+		}
+
+
+
+		protected void chaseAndEngageTargetedPed()
+		{
+			// get the Ped that the player is targeting
+			Entity ent = Game.Player.TargetedEntity;
+			
 		}
 
 
