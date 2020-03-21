@@ -15,8 +15,9 @@ namespace GFPS
 	public class Attackheli : Heli
 	{
 		#region properties
-		// by default, give each (non-copilot) crew assault weapons
-		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
+		// defaults
+		protected WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
+		protected const HeliPilotTask defaultPilotTask = HeliPilotTask.ChaseLeader;
 
 		// references
 		Stack<Ped> targetedPedsStack = new Stack<Ped>();
@@ -54,6 +55,7 @@ namespace GFPS
 					case HeliPilotTask.ChaseEngagePed:
 						foreach (Ped p in chaseAndEngageTargetedPeds())
 							targetedPedsStack.Push(p);
+						if (pilotTask == HeliPilotTask.ChaseEngagePed) chaseEngagePedHandler();
 						break;
 
 					default:
@@ -119,13 +121,16 @@ namespace GFPS
 		/// <summary>
 		/// Task the Attack Heli's crew to chase and fight against targeted Peds. Update _pilotTask if needed
 		/// </summary>
-		protected Ped[] chaseAndEngageTargetedPeds()
+		protected Ped[] chaseAndEngageTargetedPeds(bool markTargets = true)
 		{
-			//List<Ped> newTargetedPeds = new List<Ped>();
-			Ped[] newTargetedPeds;
+			Ped[] newTargetedPeds = new Ped[] { };
 
 			// get the Ped that the player is targeting
 			Entity ent = Game.Player.TargetedEntity;
+
+			// if player is not targeting anything, stop
+			if (ent == null)
+				return newTargetedPeds;
 
 			// if the entity the player is targeting is a vehicle, get the vehicle's occupants
 			if (ent.EntityType == EntityType.Vehicle)
@@ -137,13 +142,16 @@ namespace GFPS
 			// if the entity the player is targeting is a Ped, add the ped to the list
 			else if (ent.EntityType == EntityType.Ped)
 				newTargetedPeds = new Ped[] { (Ped)ent };
-
-			// if the targetedEntity is neither a Vehicle nor a Ped, set newTargetedPeds to an empty array
-			else newTargetedPeds = new Ped[] {};
-
+				
 			// if there is at least 1 new targeted Ped, update the pilot's task
 			if (newTargetedPeds.Length > 0)
+			{
 				_pilotTask = HeliPilotTask.ChaseEngagePed;
+
+				// mark the new targets
+				foreach (Ped target in newTargetedPeds)
+					target.AddBlip();
+			}
 
 			return newTargetedPeds;
 		}
@@ -155,7 +163,42 @@ namespace GFPS
 		/// </summary>
 		protected void chaseEngagePedHandler()
 		{
+			// if the targetedPeds stack is empty, reset pilot to default task
+			if (targetedPedsStack.Count == 0)
+			{
+				pilotTasking(defaultPilotTask);
+				return;
+			}
 
+			// get the last Ped in the targetedPeds Stack
+			Ped currTarget = targetedPedsStack.Peek();
+
+			// if the target is not alive, pop it from the stack;
+			// repeat until a living target is found, or the stack is depleted
+			while (!currTarget.IsAlive)
+			{
+				try { currTarget.AttachedBlip.Delete(); }
+				catch { }
+				targetedPedsStack.Pop();
+
+				// if there are more targets on the stack, get the next one
+				if (targetedPedsStack.Count > 0)
+					currTarget = targetedPedsStack.Peek();
+
+				// if the stack is now empty, return to default task
+				else
+				{
+					pilotTasking(defaultPilotTask);
+					return;
+				}
+			}
+
+			// task the pilot with chasing the target
+			pilot.Task.ChaseWithHelicopter(currTarget, Helper.getOffsetVector3(height, radius));
+			
+			// task the passenger(s) with fighting the target
+			foreach (Ped passenger in heli.Passengers)
+				passenger.Task.FightAgainst(currTarget);
 		}
 		#endregion
 	}
