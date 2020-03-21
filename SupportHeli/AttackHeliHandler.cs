@@ -19,7 +19,7 @@ namespace GFPS
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
 
 		// references
-		List<Ped> targetedPeds = new List<Ped>();
+		Stack<Ped> targetedPedsStack = new Stack<Ped>();
 		#endregion
 
 
@@ -52,7 +52,9 @@ namespace GFPS
 				switch (nextTask)
 				{
 					case HeliPilotTask.ChaseEngagePed:
-						chaseAndEngageTargetedPeds(); break;
+						foreach (Ped p in chaseAndEngageTargetedPeds())
+							targetedPedsStack.Push(p);
+						break;
 
 					default:
 						base.pilotTasking(nextTask);
@@ -117,9 +119,10 @@ namespace GFPS
 		/// <summary>
 		/// Task the Attack Heli's crew to chase and fight against targeted Peds. Update _pilotTask if needed
 		/// </summary>
-		protected List<Ped> chaseAndEngageTargetedPeds()
+		protected Ped[] chaseAndEngageTargetedPeds()
 		{
-			List<Ped> newTargetedPeds = new List<Ped>();
+			//List<Ped> newTargetedPeds = new List<Ped>();
+			Ped[] newTargetedPeds;
 
 			// get the Ped that the player is targeting
 			Entity ent = Game.Player.TargetedEntity;
@@ -128,17 +131,18 @@ namespace GFPS
 			if (ent.EntityType == EntityType.Vehicle)
 			{
 				Vehicle vehEnt = (Vehicle)ent;
-				newTargetedPeds = vehEnt.Occupants.ToList();
+				newTargetedPeds = vehEnt.Occupants;
 			}
 
 			// if the entity the player is targeting is a Ped, add the ped to the list
 			else if (ent.EntityType == EntityType.Ped)
-			{
-				newTargetedPeds.Add((Ped)ent);
-			}
+				newTargetedPeds = new Ped[] { (Ped)ent };
+
+			// if the targetedEntity is neither a Vehicle nor a Ped, set newTargetedPeds to an empty array
+			else newTargetedPeds = new Ped[] {};
 
 			// if there is at least 1 new targeted Ped, update the pilot's task
-			if (newTargetedPeds.Count > 0)
+			if (newTargetedPeds.Length > 0)
 				_pilotTask = HeliPilotTask.ChaseEngagePed;
 
 			return newTargetedPeds;
@@ -146,6 +150,9 @@ namespace GFPS
 
 
 
+		/// <summary>
+		/// 
+		/// </summary>
 		protected void chaseEngagePedHandler()
 		{
 
