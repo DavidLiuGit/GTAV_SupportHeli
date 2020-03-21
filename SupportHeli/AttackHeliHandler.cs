@@ -32,6 +32,23 @@ namespace GFPS
 		{
 			isAttackHeli = true;
 		}
+
+
+		public override void destructor(bool force = false)
+		{
+			// delete blips from targetedPeds
+			while (targetedPedsStack.Count > 0)
+			{
+				Ped t = targetedPedsStack.Pop();
+				try
+				{
+					t.AttachedBlip.Delete();
+				}
+				catch { }
+			}
+			
+			base.destructor(force);
+		}
 		#endregion
 
 
@@ -145,12 +162,16 @@ namespace GFPS
 				
 			// if there is at least 1 new targeted Ped, update the pilot's task
 			if (newTargetedPeds.Length > 0)
-			{
 				_pilotTask = HeliPilotTask.ChaseEngagePed;
 
-				// mark the new targets
+			// mark the new targets if needed
+			if (markTargets)
+			{
 				foreach (Ped target in newTargetedPeds)
+				{
 					target.AddBlip();
+					target.AttachedBlip.Scale = 0.6f;
+				}
 			}
 
 			return newTargetedPeds;

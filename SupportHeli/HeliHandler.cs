@@ -95,7 +95,7 @@ namespace GFPS
 		/// Clean up remnants of the heli.
 		/// </summary>
 		/// <param name="force">If <c>true</c>, all occupants (pilot & crew) will be deleted as well</param>
-		public void destructor(bool force = false)
+		public virtual void destructor(bool force = false)
 		{
 			_isActive = false;
 
