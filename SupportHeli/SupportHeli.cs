@@ -64,6 +64,10 @@ namespace GFPS
 						gunnersRappelDown();
 				}
 
+				// player is currently aiming
+				else if (Game.Player.IsAiming)
+					attackHeli.pilotTasking(Heli.HeliPilotTask.ChaseEngagePed);
+
 				// Delete also pressed
 				else if (Game.IsKeyPressed(Keys.Delete))
 					cleanUp(false);			// soft clean-up (helis fly away)
@@ -90,7 +94,7 @@ namespace GFPS
 
 
 		int iTick = 0;
-		int N = 200;
+		int N = 100;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
