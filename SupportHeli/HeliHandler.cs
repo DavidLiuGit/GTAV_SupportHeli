@@ -38,7 +38,6 @@ namespace GFPS
 		public Ped[] passengers;
 		public RelationshipGroup rg;
 		protected Random rng = new Random();
-		protected Ped _targetedPed;
 
 		// state machines
 		protected HeliPilotTask _pilotTask;
