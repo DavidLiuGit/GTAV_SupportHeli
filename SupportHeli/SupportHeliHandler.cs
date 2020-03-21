@@ -96,6 +96,10 @@ namespace GFPS
 
 
 		#region helpers
+		/// <summary>
+		/// Spawn the heli's passengers
+		/// </summary>
+		/// <returns>Array of <c>Ped</c> spawned as passengers</returns>
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -115,6 +119,11 @@ namespace GFPS
 
 
 
+		/// <summary>
+		/// Give all weapons in <c>weaponArray</c> to the <c>Ped</c> specified.
+		/// </summary>
+		/// <param name="crew">Ped to give weapons to</param>
+		/// <param name="weaponArray">array of <c>WeaponHash</c> to give</param>
 		protected override void giveWeapons(Ped crew, WeaponHash[] weaponArray)
 		{
 			// give sidearms in addition to primaries

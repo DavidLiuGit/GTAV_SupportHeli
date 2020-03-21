@@ -26,7 +26,10 @@ namespace GFPS
 
 
 		#region mainLogic
-
+		/// <summary>
+		/// Assign a task to the Attack Heli pilot
+		/// </summary>
+		/// <param name="nextTask"><c>HeliPilotTask</c></param>
 		public override void pilotTasking(HeliPilotTask? nextTask = null)
 		{
 			if (!isHeliServiceable())
@@ -49,6 +52,10 @@ namespace GFPS
 
 
 		#region helpers
+		/// <summary>
+		/// Spawn the heli's passengers
+		/// </summary>
+		/// <returns>Array of <c>Ped</c> spawned as passengers</returns>
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
@@ -78,7 +85,9 @@ namespace GFPS
 
 
 
-
+		/// <summary>
+		/// Task the Attack Heli's crew to chase and fight against targeted Peds 
+		/// </summary>
 		protected void chaseAndEngageTargetedPeds()
 		{
 			// get the Ped that the player is targeting
