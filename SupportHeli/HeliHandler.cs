@@ -55,6 +55,7 @@ namespace GFPS
 			Land,
 			FleePed,			// flee from a ped; used during soft delete
 			FlyToDestination,
+			ChaseEngagePed,
 		}
 
 		
@@ -94,7 +95,7 @@ namespace GFPS
 		/// Clean up remnants of the heli.
 		/// </summary>
 		/// <param name="force">If <c>true</c>, all occupants (pilot & crew) will be deleted as well</param>
-		public void destructor(bool force = false)
+		public virtual void destructor(bool force = false)
 		{
 			_isActive = false;
 
@@ -180,17 +181,9 @@ namespace GFPS
 		/// Perform sanity checks, then assign task to the pilot if necessary
 		/// </summary>
 		/// <param name="nextTask">Specify to update the pilot's task</param>
-		public void pilotTasking(HeliPilotTask? nextTask = null) {
-			// if heli is not active, do nothing
-			if (!_isActive)
+		public virtual void pilotTasking(HeliPilotTask? nextTask = null) {
+			if (!isHeliServiceable())
 				return;
-
-			// if heli is not driveable or the pilot is no longer in the heli
-			else if (!heli.IsDriveable || !pilot.IsInVehicle(heli))
-			{
-				destructor(false);
-				return;
-			}
 
 			// if nextTask is specified, attempt to make pilot perform that task
 			if (nextTask != null){
@@ -307,6 +300,27 @@ namespace GFPS
 
 
 		#region helpers
+		/// <summary>
+		/// Check whether the heli is serviceable.
+		/// </summary>
+		/// <returns><c>true</c> if heli is active and serviceable.</returns>
+		protected bool isHeliServiceable (){
+			// if heli is not active, do nothing
+			if (!_isActive)
+				return false;
+
+			// if heli is not driveable or the pilot is no longer in the heli
+			else if (!heli.IsDriveable || !pilot.IsInVehicle(heli))
+			{
+				destructor(false);
+				return false;
+			}
+
+			return true;
+		}
+
+
+
 		/// <summary>
 		/// Task the heli's pilot with chasing the specified <c>Ped</c>, with some preset offset
 		/// </summary>
@@ -469,190 +483,7 @@ namespace GFPS
 	}
 
 
-
-	public class Attackheli : Heli
-	{
-		// by default, give each (non-copilot) crew assault weapons
-		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
-
-		public Attackheli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
-			base(iniName, iniHeight, iniRadius, iniBulletproof)
-		{
-			isAttackHeli = true;
-		}
-
-
-		#region helpers
-		protected override Ped[] spawnCrewIntoHeli()
-		{
-			List<Ped> newCrew = new List<Ped>();
-
-			// if multi-seat heli, spawn more shooters
-			switch (model)
-			{
-				case HeliModel.Akula:
-				case HeliModel.Hunter:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-					break;
-
-				case HeliModel.Valkyrie:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-					goto default;
-
-				case HeliModel.Buzzard:
-				default:
-					// spawn a pair of rear-door gunners
-					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-					break;
-			}
-
-			return newCrew.ToArray<Ped>();
-		}
-		#endregion
-	}
-
-
-
-
-
-	public class SupportHeli : Heli
-	{
-		// by default, give each (non-copilot) crew heavy weapons
-		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Heavy];
-		const float blipScale = 0.7f;
-		public PedGroup leaderPedGroup;
-		protected const int maxConfigureAttempts = 5;
-		
-		protected int seatIndex = 0;
-		protected VehicleSeat[] seatSelection;
-
-
-		public SupportHeli (string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
-			base(iniName, iniHeight, iniRadius, iniBulletproof)
-		{ 
-			isAttackHeli = false;
-
-			// get the player's current PedGroup (or create a new one if player is not in one)
-			leaderPedGroup = _leader.PedGroup;
-			if (leaderPedGroup == null)
-			{
-				leaderPedGroup = new PedGroup();
-				leaderPedGroup.Add(_leader, true);
-			}
-			leaderPedGroup.SeparationRange = 99999f;
-			leaderPedGroup.Formation = Formation.Circle2;
-
-			// set the list of seats (based on helicopter model, but temporarily all the same)
-			seatSelection = new VehicleSeat[] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
-		}
-
-
-
-		#region publicMethods
-		/// <summary>
-		/// Spawn and task 2 ground crew NPCs to rappel down from the SupportHeli. If no <c>GroundCrewRole</c>
-		/// is specified, one will be chosen at random.
-		/// </summary>
-		/// <returns>Array of <c>Ped</c></returns>
-		public Ped[] groundCrewRappelDown(GroundCrewSettings crewSettings)
-		{
-			Array roles = Enum.GetValues(typeof(GroundCrewRole));
-			return groundCrewRappelDown((GroundCrewRole)roles.GetValue(rng.Next(0, roles.Length)), crewSettings);
-		}
-
-
-		/// <summary>
-		/// Task SupportHeli gunners to rappel down to the ground (and become ground crew).
-		/// </summary>
-		/// <param name="role">Ground crew role; weapons are assigned based on role</param>
-		/// <returns>Array of <c>Ped</c> rappeling</returns>
-		public Ped[] groundCrewRappelDown(GroundCrewRole role, GroundCrewSettings crewSettings)
-		{
-			// make sure there are gunners in the crew seats
-			Ped[] newGroundCrew = new Ped[] {
-				spawnCrewGunner(seatSelection[seatIndex % seatSelection.Length], CrewHandler.weaponsOfRoles[role]),
-				//spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
-			};
-			seatIndex++;
-
-			// apply settings to each gunner, instruct each gunner to rappel, and add to player's PedGroup
-			foreach (Ped crew in newGroundCrew)
-			{
-				crewSettings.applySettingsToPed(crew);
-				crew.Task.RappelFromHelicopter();
-
-				bool res;
-				int i = 0;
-				do { 
-					res = configureGroundCrew(crew); 
-					i++;
-				}		// if unsuccessful, do again until it does succeed
-				while (!res && i < maxConfigureAttempts);
-			}
-
-			GTA.UI.Notification.Show("Active Ground Crew: " + leaderPedGroup.MemberCount);
-			return newGroundCrew;
-		}
-		#endregion
-
-
-
-		#region helpers
-		protected override Ped[] spawnCrewIntoHeli()
-		{
-			List<Ped> newCrew = new List<Ped>();
-
-			switch (model)
-			{
-				case HeliModel.Polmav:
-				case HeliModel.Maverick:
-				default:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-					break;
-			}
-
-			return newCrew.ToArray<Ped>();
-		}
-
-
-
-		protected override void giveWeapons(Ped crew, WeaponHash[] weaponArray)
-		{
-			// give sidearms in addition to primaries
-			foreach (WeaponHash sidearm in CrewHandler.sidearms)
-				crew.Weapons.Give(sidearm, 9999, false, true);
-			base.giveWeapons(crew, weaponArray);
-		}
-
-
-
-		/// <summary>
-		/// Apply configurations to ground crew
-		/// </summary>
-		/// <param name="crew"><c>Ped</c> to apply configuration to</param>
-		/// <returns><c>true</c> if the specified <c>Ped</c> is in the leader's PedGroup</returns>
-		protected bool configureGroundCrew(Ped crew)
-		{
-			// add to player's PedGroup if there is space
-			leaderPedGroup.Add(crew, false);
-			crew.NeverLeavesGroup = true;
-
-			// verify that the crew is part of the player's PedGroup
-			if (!crew.IsInGroup)
-				return false;
-
-			// draw blip
-			crew.AddBlip();
-			crew.AttachedBlip.Scale = blipScale;
-			crew.AttachedBlip.Color = BlipColor.Green;
-
-			return true;
-		}
-		#endregion
-	}
-
+	
 
 	public enum HeliModel : int
 	{
