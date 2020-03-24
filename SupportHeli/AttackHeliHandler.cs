@@ -158,7 +158,17 @@ namespace GFPS
 
 			// if the entity the player is targeting is a Ped, add the ped to the list
 			else if (ent.EntityType == EntityType.Ped)
-				newTargetedPeds = new Ped[] { (Ped)ent };
+			{
+				Ped pedEnt = (Ped)ent;
+
+				// if the targeted Ped is in a vehicle, target every occupant of that vehicle
+				if (pedEnt.IsInVehicle())
+					newTargetedPeds = pedEnt.CurrentVehicle.Occupants;
+
+				// otherwise, target the Ped
+				else 
+					newTargetedPeds = new Ped[] { pedEnt };
+			}
 				
 			// if there is at least 1 new targeted Ped, update the pilot's task
 			if (newTargetedPeds.Length > 0)
