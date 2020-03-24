@@ -47,11 +47,13 @@
     <Compile Include="..\..\lap_timer\LapTimer\iniReader.cs">
       <Link>iniReader.cs</Link>
     </Compile>
+    <Compile Include="AttackHeliHandler.cs" />
     <Compile Include="CrewHandler.cs" />
     <Compile Include="HeliHandler.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SupportHeliHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
