@@ -30,6 +30,7 @@ namespace GFPS
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 		protected const float warpIntoDistanceThreshold = 4f;
 		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different height
+		protected const BlipColor defaultBlipColor = BlipColor.Green;
 
 		// object references
 		protected Ped _leader;
@@ -360,7 +361,7 @@ namespace GFPS
 			// attach a blip (rotating helicopter)
 			heli.AddBlip();
 			heli.AttachedBlip.Sprite = BlipSprite.HelicopterAnimated;
-			heli.AttachedBlip.Color = BlipColor.Green;
+			heli.AttachedBlip.Color = defaultBlipColor;
 
 			return heli;
 		}

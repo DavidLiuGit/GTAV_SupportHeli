@@ -36,16 +36,8 @@ namespace GFPS
 
 		public override void destructor(bool force = false)
 		{
-			// delete blips from targetedPeds
-			while (targetedPedsStack.Count > 0)
-			{
-				Ped t = targetedPedsStack.Pop();
-				try
-				{
-					t.AttachedBlip.Delete();
-				}
-				catch { }
-			}
+			// clear target stack
+			targetedPedsStack.Clear();
 			
 			base.destructor(force);
 		}
@@ -138,7 +130,7 @@ namespace GFPS
 		/// <summary>
 		/// Task the Attack Heli's crew to chase and fight against targeted Peds. Update _pilotTask if needed
 		/// </summary>
-		protected Ped[] chaseAndEngageTargetedPeds(bool markTargets = true)
+		protected Ped[] chaseAndEngageTargetedPeds()
 		{
 			Ped[] newTargetedPeds = new Ped[] { };
 
@@ -172,32 +164,25 @@ namespace GFPS
 				
 			// if there is at least 1 new targeted Ped, update the pilot's task
 			if (newTargetedPeds.Length > 0)
-				_pilotTask = HeliPilotTask.ChaseEngagePed;
-
-			// mark the new targets if needed
-			if (markTargets)
 			{
-				foreach (Ped target in newTargetedPeds)
-				{
-					target.AddBlip();
-					target.AttachedBlip.Scale = 0.6f;
-				}
+				_pilotTask = HeliPilotTask.ChaseEngagePed;
+				heli.AttachedBlip.Color = BlipColor.Orange;
 			}
-
+			
 			return newTargetedPeds;
 		}
 
 
 
 		/// <summary>
-		/// 
+		/// Task the pilot and gunner with engaging the top target in targetedPedsStack
 		/// </summary>
 		protected void chaseEngagePedHandler()
 		{
 			// if the targetedPeds stack is empty, reset pilot to default task
 			if (targetedPedsStack.Count == 0)
 			{
-				pilotTasking(defaultPilotTask);
+				exitChaseEngageMode(defaultPilotTask);
 				return;
 			}
 
@@ -219,7 +204,7 @@ namespace GFPS
 				// if the stack is now empty, return to default task
 				else
 				{
-					pilotTasking(defaultPilotTask);
+					exitChaseEngageMode(defaultPilotTask);
 					return;
 				}
 			}
@@ -230,6 +215,21 @@ namespace GFPS
 			// task the passenger(s) with fighting the target
 			foreach (Ped passenger in heli.Passengers)
 				passenger.Task.FightAgainst(currTarget);
+		}
+
+
+
+		/// <summary>
+		/// Call when targetedPedsStack is depleted
+		/// </summary>
+		/// <param name="nextTask">Optional; define next task for pilot</param>
+		protected void exitChaseEngageMode(HeliPilotTask nextTask = HeliPilotTask.ChaseLeader)
+		{
+			// reset the attached blip back to normal
+			heli.AttachedBlip.Color = defaultBlipColor;
+
+			// request next pilot task
+			pilotTasking(nextTask);
 		}
 		#endregion
 	}
