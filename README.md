@@ -29,13 +29,12 @@ The following models support rappeling:
 * Maverick
 * Polmav
 
-The following models can also be used, without rappeling support and/or door gunners:
+It is recommended to use Polmav (Police Maverick). The following models can also be used, without rappeling support and/or door gunners:
 * Buzzard
 * Akula
 * Hunter
 * Valkyrie
 
-It is recommended to use Maverick/Polmav
 
 ### Usage
 By default, `[activateKey]` is `F10`. This can be changed in settings.
@@ -44,3 +43,4 @@ By default, `[activateKey]` is `F10`. This can be changed in settings.
 * land near player: `PageDown + [activateKey]`
 * enter heli: hold `[enterVehicle]` after heli has landed
 * fly to destination (or hover if no waypoint is set): `Tab + [activateKey]`
+* resume chasing player (after landing): `PageUp + [activateKey]`
