@@ -228,6 +228,10 @@ namespace GFPS
 
 			// request next pilot task
 			pilotTasking(nextTask);
+
+			// task all passengers (gunners) with fighting hated Peds
+			foreach (Ped passenger in heli.Passengers)
+				passenger.Task.FightAgainstHatedTargets(9999f);
 		}
 		#endregion
 	}

@@ -416,7 +416,7 @@ namespace GFPS
 
 			// task crew with fighting any enemies
 			gunner.FiringPattern = fp;
-			gunner.Task.FightAgainstHatedTargets(99999);
+			gunner.Task.FightAgainstHatedTargets(9999f);
 			gunner.AlwaysKeepTask = true;
 			gunner.CanRagdoll = false;
 			gunner.CanWrithe = false;
