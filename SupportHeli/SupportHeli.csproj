@@ -51,6 +51,7 @@
     <Compile Include="CrewHandler.cs" />
     <Compile Include="HeliHandler.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="StrafeRun.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportHeliHandler.cs" />

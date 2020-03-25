@@ -84,6 +84,10 @@ namespace GFPS
 				else if (Game.IsKeyPressed(Keys.Tab))
 					supportHeli.pilotTasking(Heli.HeliPilotTask.FlyToDestination);
 
+				// End also pressed
+				else if (Game.IsKeyPressed(Keys.End))
+					strafeRun.spawnStrafeRun(Game.Player.Character.Position);
+
 				// no modifiers
 				else
 					attackHeli.spawnMannedHeli(Game.Player.Character);
@@ -118,6 +122,7 @@ namespace GFPS
 		// instances of Heli to track
 		Attackheli attackHeli;
 		SupportHeli supportHeli;
+		StrafeRun strafeRun;
 		GroundCrewSettings crewSettings = new GroundCrewSettings();
 
 		/// <summary>
@@ -137,6 +142,9 @@ namespace GFPS
 			sec = "SupportHeli";
 			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			supportHeli.rg = heliRg;
+
+			// read in settings for Strafe Run
+			strafeRun = new StrafeRun(200f, 200f, true);
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);
