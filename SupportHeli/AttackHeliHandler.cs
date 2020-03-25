@@ -193,8 +193,6 @@ namespace GFPS
 			// repeat until a living target is found, or the stack is depleted
 			while (!currTarget.IsAlive)
 			{
-				try { currTarget.AttachedBlip.Delete(); }
-				catch { }
 				targetedPedsStack.Pop();
 
 				// if there are more targets on the stack, get the next one
@@ -230,6 +228,10 @@ namespace GFPS
 
 			// request next pilot task
 			pilotTasking(nextTask);
+
+			// task all passengers (gunners) with fighting hated Peds
+			foreach (Ped passenger in heli.Passengers)
+				passenger.Task.FightAgainstHatedTargets(9999f);
 		}
 		#endregion
 	}
