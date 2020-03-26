@@ -33,9 +33,12 @@ namespace GFPS
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
+		protected const float cinematicCamFov = 85f;
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(7.5f, -15f, 3f);
 
 		// object references
 		protected Stack<Vehicle> strafeVehicleStack = new Stack<Vehicle>();
+		protected Camera cinematicCam;
 		#endregion
 
 
@@ -57,8 +60,13 @@ namespace GFPS
 		/// </summary>
 		/// <param name="force"></param>
 		public virtual void destructor(bool force = false){
+			// reset settings
 			_isActive = false;
 			_lastDistance = float.PositiveInfinity;
+
+			// reset to default camera
+			if (_cinematic)
+				World.RenderingCamera = null;
 
 			try
 			{
@@ -108,6 +116,13 @@ namespace GFPS
 
 			// add the vehicle to the list (stack) of active strafing vehicles
 			strafeVehicleStack.Push(strafeVehicle);
+
+			// render from cinematic cam if requested
+			if (_cinematic)
+			{
+				cinematicCam = initCinematicCam(strafeVehicleStack.Peek());
+				World.RenderingCamera = cinematicCam;
+			}
 		}
 
 
@@ -157,7 +172,10 @@ namespace GFPS
 			Vehicle veh = World.CreateVehicle((Model)((int)1692272545u), Helper.getOffsetVector3(_height, _radius) + targetPos);
 			
 			// orient the vehicle towards the target
-			veh.Rotation = Helper.getEulerAngles((targetPos - veh.Position).Normalized);
+			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - veh.Position).Normalized);
+			initialEulerAngle.X = 0f;				// reduce initial pitch 
+			initialEulerAngle.Z += 20.0f;			// offset initial yaw by 30 degrees (clockwise)
+			veh.Rotation = initialEulerAngle;
 			veh.ForwardSpeed = initialAirSpeed;
 
 			// apply settings the the vehicle
@@ -198,6 +216,22 @@ namespace GFPS
 			p.AlwaysKeepTask = true;
 
 			return p;
+		}
+
+
+
+		/// <summary>
+		/// Initialize the cinematic camera for the strafe run.
+		/// </summary>
+		/// <param name="strafingVeh">Camera will be attached to this strafing vehicle</param>
+		/// <returns></returns>
+		protected Camera initCinematicCam(Vehicle strafingVeh)
+		{
+			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, cinematicCamFov);
+			cam.AttachTo(strafingVeh, cinematicCameraOffset);
+			cam.PointAt(strafingVeh);
+
+			return cam;
 		}
 		#endregion
 	}
