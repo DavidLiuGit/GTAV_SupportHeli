@@ -32,6 +32,7 @@ namespace GFPS
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
+		protected const float initialAirSpeed = 30f;
 
 		// object references
 		protected Stack<Vehicle> strafeVehicleStack = new Stack<Vehicle>();
@@ -75,7 +76,7 @@ namespace GFPS
 					// if destroying gracefully, command the pilot to fly away. Mark crew and vehicle as no longer needed
 					else
 					{
-						strafeVehicle.Driver.Task.FleeFrom(Game.Player.Character);
+						strafeVehicle.Driver.Task.FleeFrom(_targetPos);
 						strafeVehicle.Driver.MarkAsNoLongerNeeded();
 						strafeVehicle.MarkAsNoLongerNeeded();
 					}
@@ -157,6 +158,7 @@ namespace GFPS
 			
 			// orient the vehicle towards the target
 			veh.Rotation = Helper.getEulerAngles((targetPos - veh.Position).Normalized);
+			veh.ForwardSpeed = initialAirSpeed;
 
 			// apply settings the the vehicle
 			veh.IsEngineRunning = true;
