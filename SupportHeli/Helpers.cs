@@ -102,6 +102,28 @@ namespace GFPS
 			// build the vector & add the offset angle (forwardAngle), if given
 			return new Vector3(pitch, 0f, yaw);		// applied in order: pitch, yaw, roll
 		}
+
+
+
+		/// <summary>
+		/// Rotate a 3D vector about the Z-axis (yaw) by a specified angle.
+		/// </summary>
+		/// <param name="input">Original vector</param>
+		/// <param name="angle">Angle, in degrees, to rotate about the Z-axis</param>
+		/// <returns></returns>
+		public static Vector3 rotateVectorZAxis(Vector3 input, float angleDegrees)
+		{
+			// convert angle to radians
+			float angleRad = (float) (angleDegrees / 180f * Math.PI);
+
+			// x' = x cos θ − y sin θ
+			input.X = (float)(input.X * Math.Cos(angleRad) - input.Y * Math.Sin(angleRad));
+
+			// y' = x sin θ + y cos θ
+			input.Y = (float)(input.X * Math.Sin(angleRad) + input.Y * Math.Cos(angleRad));
+
+			return input;
+		}
 		#endregion
 	}
 }
