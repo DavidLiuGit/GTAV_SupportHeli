@@ -50,6 +50,7 @@ namespace GFPS
 		// object references
 		protected Stack<Vehicle> strafeVehicleStack = new Stack<Vehicle>();
 		protected Camera cinematicCam;
+		protected RelationshipGroup relGroup;
 		#endregion
 
 
@@ -62,6 +63,7 @@ namespace GFPS
 			_height = height;
 			_radius = radius;
 			_cinematic = cinematic;
+			relGroup = Game.Player.Character.RelationshipGroup;
 		}
 
 
@@ -197,7 +199,8 @@ namespace GFPS
 			for (int n = 0; n < N; n++)
 			{
 				Vehicle strafeVehicle = spawnStrafeVehicle(formationAnchorPos, initialEulerAngle, n);
-				spawnStrafePilot(strafeVehicle, targetPos, n);			// task pilot
+				Ped pilot = spawnStrafePilot(strafeVehicle, n);			// spawn pilot into vehicle
+				taskPilotEngage(pilot, strafeVehicle, Game.Player.Character.Position);
 				strafeVehicles.Push(strafeVehicle);
 			}
 
@@ -244,25 +247,54 @@ namespace GFPS
 		/// while simultaneously shooting at the target.
 		/// </summary>
 		/// <param name="veh">Reference t othe strafe run vehicle</param>
-		/// <param name="targetPos">Current target position</param>
+		/// 
 		/// <param name="n">The nth pilot in the strafing formation</param>
 		/// <returns></returns>
-		protected Ped spawnStrafePilot(Vehicle veh, Vector3 targetPos, int n)
+		protected Ped spawnStrafePilot(Vehicle veh, int n)
 		{
 			// spawn the pilot in the driver seat
 			Ped p = veh.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
+			p.RelationshipGroup = relGroup;
 
 			// configure weapons
 			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, formationWeapons[n]);
 			p.FiringPattern = FiringPattern.FullAuto;
 
-			// task the pilot with shooting
-			Function.Call(Hash.TASK_PLANE_MISSION, p, veh, 0, Game.Player.Character, 0f, 0f, 0f,
-				6, 0f, 0f, (targetPos - veh.Position).ToHeading(), 2500f, 5f);
-			p.AlwaysKeepTask = true;
-
 			return p;
 		}
+
+
+
+		/// <summary>
+		/// Task the pilot of a specified vehicle to engage a specified target <c>Ped</c>
+		/// </summary>
+		/// <param name="pilot">Pilot <c>Ped</c></param>
+		/// <param name="veh"><c>Vehicle</c> pilot is flying</param>
+		/// <param name="target">Target <c>Ped</c></param>
+		protected void taskPilotEngage(Ped pilot, Vehicle veh, Ped target)
+		{
+			// task the pilot with shooting
+			Function.Call(Hash.TASK_PLANE_MISSION, pilot, veh, 0, target, 0f, 0f, 0f,
+				6, 0f, 0f, (target.Position - veh.Position).ToHeading(), 2500f, 5f);
+			pilot.AlwaysKeepTask = true;
+		}
+
+
+
+		/// <summary>
+		/// Task the pilot of a specified vehicle to fire at a specified position.
+		/// </summary>
+		/// <param name="pilot">Pilot <c>Ped</c></param>
+		/// <param name="veh"><c>Vehicle</c> pilot is flying</param>
+		/// <param name="target">Target position <c>Vector3</c></param>
+		protected void taskPilotEngage(Ped pilot, Vehicle veh, Vector3 target)
+		{
+			// task the pilot with shooting
+			Function.Call(Hash.TASK_PLANE_MISSION, pilot, veh, 0, 0, target.X, target.Y, target.Z,
+				6, 0f, 0f, (target - veh.Position).ToHeading(), 2500f, 5f);
+			pilot.AlwaysKeepTask = true;
+		}
+
 
 
 
