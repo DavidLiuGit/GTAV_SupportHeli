@@ -97,6 +97,7 @@ namespace GFPS
 
 
 
+
 		int iTick = 0;
 		int N = 100;
 		private void onNthTick (object sender, EventArgs e) 
@@ -144,7 +145,7 @@ namespace GFPS
 			supportHeli.rg = heliRg;
 
 			// read in settings for Strafe Run
-			strafeRun = new StrafeRun(200f, 200f, true);
+			strafeRun = new StrafeRun(300f, 300f, true);
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);
@@ -209,6 +210,7 @@ namespace GFPS
 			// clean up helis
 			attackHeli.destructor(force);
 			supportHeli.destructor(force);
+			strafeRun.destructor(force);
 			
 			// clean up any ground crew
 			PedGroup playerPedGrp = Game.Player.Character.PedGroup;

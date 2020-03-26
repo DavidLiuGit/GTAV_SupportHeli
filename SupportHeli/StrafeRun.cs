@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GTA;
 using GTA.Math;
 using GTA.Native;
+using GTA.UI;
 
 
 namespace GFPS
@@ -25,11 +26,11 @@ namespace GFPS
 		public bool isActive { get { return _isActive; } }
 
 		// consts
-		protected const BlipColor defaultBlipColor = BlipColor.Green;
+		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 
 		// object references
-		protected Vehicle strafeVehicle;
-		protected Ped pilot;
+		protected List<Vehicle> strafeVehicleList = new List<Vehicle>();
+		//protected Ped pilot;
 		#endregion
 
 
@@ -55,22 +56,27 @@ namespace GFPS
 
 			try
 			{
-				strafeVehicle.AttachedBlip.Delete();
-
-				// if destroying by force
-				if (force)
+				foreach (Vehicle strafeVehicle in strafeVehicleList)
 				{
-					pilot.Delete();
-					strafeVehicle.Delete();
+					strafeVehicle.AttachedBlip.Delete();
+
+					// if destroying by force
+					if (force)
+					{
+						strafeVehicle.Driver.Delete();
+						strafeVehicle.Delete();
+					}
+
+					// if destroying gracefully, command the pilot to fly away. Mark crew and vehicle as no longer needed
+					else
+					{
+						strafeVehicle.Driver.Task.FleeFrom(Game.Player.Character);
+						strafeVehicle.Driver.MarkAsNoLongerNeeded();
+						strafeVehicle.MarkAsNoLongerNeeded();
+					}
 				}
 
-				// if destroying gracefully, command the pilot to fly away. Mark crew and vehicle as no longer needed
-				else
-				{
-					pilot.Task.FleeFrom(Game.Player.Character);
-					pilot.MarkAsNoLongerNeeded();
-					strafeVehicle.MarkAsNoLongerNeeded();
-				}
+				strafeVehicleList.Clear();
 			}
 			catch { }
 		}
@@ -89,8 +95,11 @@ namespace GFPS
 			_isActive = true;
 
 			// spawn a strafing vehicle
-			strafeVehicle = spawnStrafeVehicle(targetPos);
-			pilot = spawnStrafePilot(strafeVehicle, targetPos);
+			Vehicle strafeVehicle = spawnStrafeVehicle(targetPos);
+			spawnStrafePilot(strafeVehicle, targetPos);
+
+			// add the vehicle to the list of active strafing vehicles
+			strafeVehicleList.Add(strafeVehicle);
 		}
 		#endregion
 
@@ -131,8 +140,13 @@ namespace GFPS
 			// spawn the pilot in the driver seat
 			Ped p = veh.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
 
+			// configure weapons
+			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 519052682);
+			p.FiringPattern = FiringPattern.FullAuto;
+			
+
 			// task the pilot with shooting
-			p.Task.SwapWeapon();
+//			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 955522731);
 			Function.Call(Hash.TASK_PLANE_MISSION, p, veh, 0, Game.Player.Character, 0f, 0f, 0f,
 				6, 0f, 0f, (targetPos - veh.Position).ToHeading(), 2500f, 0f);
 			p.AlwaysKeepTask = true;
