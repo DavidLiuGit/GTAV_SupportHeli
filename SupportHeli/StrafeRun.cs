@@ -19,7 +19,7 @@ namespace GFPS
 		public bool _cinematic = true;
 		protected float _height;
 		protected float _radius;
-		protected int _timeout = 25000;		// _timeout after 15 seconds
+		protected int _timeout = 20000;		// _timeout after 15 seconds
 
 		// flags
 		protected bool _isActive;
@@ -28,13 +28,13 @@ namespace GFPS
 		// variables
 		protected int _spawnTime;
 		protected Vector3 _targetPos;
-		protected float _lastDistance;		// on each tick, measure the 2D distance to the target
+		protected float _lastDistance = float.PositiveInfinity;		// on each tick, measure the 2D distance to the target
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 
 		// object references
-		protected List<Vehicle> strafeVehicleList = new List<Vehicle>();
+		protected Stack<Vehicle> strafeVehicleStack = new Stack<Vehicle>();
 		#endregion
 
 
@@ -57,10 +57,11 @@ namespace GFPS
 		/// <param name="force"></param>
 		public virtual void destructor(bool force = false){
 			_isActive = false;
+			_lastDistance = float.PositiveInfinity;
 
 			try
 			{
-				foreach (Vehicle strafeVehicle in strafeVehicleList)
+				foreach (Vehicle strafeVehicle in strafeVehicleStack)
 				{
 					strafeVehicle.AttachedBlip.Delete();
 
@@ -80,7 +81,7 @@ namespace GFPS
 					}
 				}
 
-				strafeVehicleList.Clear();
+				strafeVehicleStack.Clear();
 			}
 			catch { }
 		}
@@ -105,7 +106,7 @@ namespace GFPS
 			spawnStrafePilot(strafeVehicle, targetPos);
 
 			// add the vehicle to the list of active strafing vehicles
-			strafeVehicleList.Add(strafeVehicle);
+			strafeVehicleStack.Push(strafeVehicle);
 		}
 
 
@@ -118,14 +119,28 @@ namespace GFPS
 			// check if active
 			if (!_isActive) return;
 
-			// if active, check if timed out
+			// if active, check if timed out;
 			if (Game.GameTime - _spawnTime > _timeout)
 			{
+				Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
 				return;
 			}
+
+			// compute the last vehicle's distance to the target
+			float currDistance = strafeVehicleStack.Peek().Position.DistanceTo2D(_targetPos);
+			if (currDistance > _lastDistance)
+			{
+				Notification.Show("Strafe run complete; dimissing");
+				destructor(false);				// if the vehicle is getting further away from target, dismiss
+			}
+			else
+			{
+				_lastDistance = currDistance;
+			}
 		}
 		#endregion
+
 
 
 

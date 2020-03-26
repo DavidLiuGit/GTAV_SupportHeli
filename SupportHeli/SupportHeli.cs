@@ -116,11 +116,13 @@ namespace GFPS
 			supportHeli.pilotTasking();
 
 			// manipulate strafe run if active
+			strafeRun.strafeRunOnTick();
 
 			// handle ground crew actions
 			updateGroundCrewActions();
 		}
 		
+
 
 		// instances of Heli to track
 		Attackheli attackHeli;
