@@ -115,6 +115,8 @@ namespace GFPS
 			attackHeli.pilotTasking();
 			supportHeli.pilotTasking();
 
+			// manipulate strafe run if active
+
 			// handle ground crew actions
 			updateGroundCrewActions();
 		}

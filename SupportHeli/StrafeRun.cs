@@ -19,18 +19,22 @@ namespace GFPS
 		public bool _cinematic = true;
 		protected float _height;
 		protected float _radius;
-		protected uint modelHash;
+		protected int _timeout = 25000;		// _timeout after 15 seconds
 
 		// flags
 		protected bool _isActive;
 		public bool isActive { get { return _isActive; } }
+
+		// variables
+		protected int _spawnTime;
+		protected Vector3 _targetPos;
+		protected float _lastDistance;		// on each tick, measure the 2D distance to the target
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 
 		// object references
 		protected List<Vehicle> strafeVehicleList = new List<Vehicle>();
-		//protected Ped pilot;
 		#endregion
 
 
@@ -88,11 +92,13 @@ namespace GFPS
 
 		#region publicMethods
 		/// <summary>
-		/// Begin strafe run
+		/// Begin strafe run.
 		/// </summary>
 		public void spawnStrafeRun(Vector3 targetPos)
 		{
 			_isActive = true;
+			_spawnTime = Game.GameTime;
+			_targetPos = targetPos;
 
 			// spawn a strafing vehicle
 			Vehicle strafeVehicle = spawnStrafeVehicle(targetPos);
@@ -100,6 +106,24 @@ namespace GFPS
 
 			// add the vehicle to the list of active strafing vehicles
 			strafeVehicleList.Add(strafeVehicle);
+		}
+
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public void strafeRunOnTick()
+		{
+			// check if active
+			if (!_isActive) return;
+
+			// if active, check if timed out
+			if (Game.GameTime - _spawnTime > _timeout)
+			{
+				destructor(false);				// dismiss gracefully
+				return;
+			}
 		}
 		#endregion
 
@@ -141,19 +165,18 @@ namespace GFPS
 			Ped p = veh.CreatePedOnSeat(VehicleSeat.Driver, PedHash.Pilot01SMY);
 
 			// configure weapons
-			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 519052682);
+			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 955522731);		// cannon
+			//Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 519052682);		// homing
 			p.FiringPattern = FiringPattern.FullAuto;
 			
 
 			// task the pilot with shooting
-//			Function.Call(Hash.SET_CURRENT_PED_VEHICLE_WEAPON, p, 955522731);
 			Function.Call(Hash.TASK_PLANE_MISSION, p, veh, 0, Game.Player.Character, 0f, 0f, 0f,
 				6, 0f, 0f, (targetPos - veh.Position).ToHeading(), 2500f, 0f);
 			p.AlwaysKeepTask = true;
 
 			return p;
 		}
-
 		#endregion
 	}
 }
