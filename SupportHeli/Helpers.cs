@@ -83,5 +83,25 @@ namespace GFPS
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg1Hash, rg2Hash);
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg2Hash, rg1Hash);
 		}
+
+
+
+
+		#region trigonometry
+		/// <summary>
+		/// Given a normalized direction Vector3, return a set of Euler angles, describing Rot[ZXY] (i.e. pitch, roll, yaw).
+		/// All angles are in degrees. Roll will be set to 0.0
+		/// </summary>
+		/// <returns><c>Vector3</c> whose x, y, z angles represent pitch, roll, and yaw angles respectively. Angles are in degrees.</returns>
+		public static Vector3 getEulerAngles(Vector3 normDirectionVector)
+		{
+			// calculate angles
+			float yaw = (float)(Math.Atan2(normDirectionVector.Y, normDirectionVector.X) * 180 / Math.PI) - 90f;
+			float pitch = (float)(Math.Asin(normDirectionVector.Z) * (180 / Math.PI));
+
+			// build the vector & add the offset angle (forwardAngle), if given
+			return new Vector3(pitch, 0f, yaw);		// applied in order: pitch, yaw, roll
+		}
+		#endregion
 	}
 }

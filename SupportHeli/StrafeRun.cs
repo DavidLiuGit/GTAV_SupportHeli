@@ -105,7 +105,7 @@ namespace GFPS
 			Vehicle strafeVehicle = spawnStrafeVehicle(targetPos);
 			spawnStrafePilot(strafeVehicle, targetPos);
 
-			// add the vehicle to the list of active strafing vehicles
+			// add the vehicle to the list (stack) of active strafing vehicles
 			strafeVehicleStack.Push(strafeVehicle);
 		}
 
@@ -152,8 +152,13 @@ namespace GFPS
 		/// <returns>Reference to strafe run vehicle spawned</returns>
 		protected Vehicle spawnStrafeVehicle(Vector3 targetPos)
 		{
-			// spawn strafe run vehicle and apply settings
+			// spawn strafe run vehicle
 			Vehicle veh = World.CreateVehicle((Model)((int)1692272545u), Helper.getOffsetVector3(_height, _radius) + targetPos);
+			
+			// orient the vehicle towards the target
+			veh.Rotation = Helper.getEulerAngles((targetPos - veh.Position).Normalized);
+
+			// apply settings the the vehicle
 			veh.IsEngineRunning = true;
 			veh.IsBulletProof = true;
 			veh.LandingGearState = VehicleLandingGearState.Retracted;
