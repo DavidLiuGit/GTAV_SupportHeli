@@ -37,8 +37,8 @@ namespace GFPS
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
-		protected const float cinematicCamFov = 85f;
-		protected readonly Vector3 cinematicCameraOffset = new Vector3(5f, -25f, 8f);
+		protected const float cinematicCamFov = 65f;
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(5f, -15f, 8f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 
 		// formation consts
@@ -50,12 +50,13 @@ namespace GFPS
 			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
 		};
 		//protected readonly uint[] formationWeapons = new uint[] { 955522731, 968648323, 955522731, 968648323 };
-		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682 };
+		protected readonly uint[] formationWeapons = new uint[] { 519052682, 955522731, 955522731, 519052682 };
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
 		protected Camera cinematicCam;
 		protected RelationshipGroup relGroup;
+		protected List<Ped> initialTargetList;
 		#endregion
 
 
@@ -137,7 +138,10 @@ namespace GFPS
 
 			// spawn a strafing vehicle formation
 			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, numVehicles);
-			strafeRunOnTick();
+			SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius, true);
+			Notification.Show("Targets found: " + targetQ.Count);
+			initialTargetList = targetQ.ToList();
+			taskAllPilotsEngage(targetQ);
 
 			// render from cinematic cam if requested
 			if (_cinematic)
@@ -169,7 +173,8 @@ namespace GFPS
 			float currDistance = strafeVehiclesList[strafeVehiclesList.Count - 1].Position.DistanceTo2D(_targetPos);
 			if (currDistance > _lastDistance)
 			{
-				Notification.Show("Strafe run complete; dismissing");
+				Notification.Show("Strafe run complete. " + getKillCount(initialTargetList) + 
+					" of " + initialTargetList.Count + " targets KIA.");
 				destructor(false);				// if the vehicle is getting further away from target, dismiss
 			}
 
@@ -181,17 +186,7 @@ namespace GFPS
 
 				// assign pilots to targets in the target priority queue
 				SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius);
-				Screen.ShowHelpTextThisFrame("Targets found: " + targetQ.Count);
-				for (int i = 0; i < strafeVehiclesList.Count; i++)
-				{
-					Vehicle veh = strafeVehiclesList[i];
-
-					// 
-					if (i < targetQ.Count)
-						taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
-
-					else taskPilotEngage(veh.Driver, veh, _targetPos);
-				}
+				taskAllPilotsEngage(targetQ);
 			}
 		}
 		#endregion
@@ -272,7 +267,7 @@ namespace GFPS
 		/// <param name="searchRadius">radius of Ped search</param>
 		/// <param name="targetNeutral">Whether not to target Peds with neutral relationship</param>
 		/// <returns></returns>
-		protected SimplePriorityQueue<Ped> buildTargetPriorityQueue(Vector3 searchOrigin, float searchRadius, bool targetNeutral = true)
+		protected SimplePriorityQueue<Ped> buildTargetPriorityQueue(Vector3 searchOrigin, float searchRadius, bool persistTarget = false)
 		{
 			// init empty list
 			SimplePriorityQueue<Ped> targetQ = new SimplePriorityQueue<Ped>();
@@ -300,12 +295,19 @@ namespace GFPS
 				// if the relationship is positive, do not add ped to target queue
 				if ((int)rel <= 2) continue;
 
-				// if relationship is Neutral or Pedestrian, and targetNeutral is true, add to queue with rank = 3
-				else if (targetNeutral && (rel == Relationship.Neutral || rel == Relationship.Pedestrians))
+				// if relationship is Neutral or Pedestrian, add to queue with rank = 3
+				else if (rel == Relationship.Neutral || rel == Relationship.Pedestrians)
+				{
 					targetQ.Enqueue(ped, 3);
+					if (persistTarget) ped.IsPersistent = true;
+				}
 
 				// otherwise, the relationship is negative (dislike/hate); add to queue
-				else targetQ.Enqueue(ped, 5 - (int)rel);
+				else
+				{
+					targetQ.Enqueue(ped, 5 - (int)rel);
+					if (persistTarget) ped.IsPersistent = true;
+				}
 			}
 
 			return targetQ;
@@ -331,6 +333,26 @@ namespace GFPS
 			p.FiringPattern = FiringPattern.FullAuto;
 
 			return p;
+		}
+
+
+
+		/// <summary>
+		/// Task all strafe run pilots with engaging Ped targets. If there are more strafing vehicles
+		/// than targets, the remaining pilots will fire at the original target position.
+		/// </summary>
+		/// <param name="targetQ"><c>SimplePriorityQueue</c> of Peds, from which targets will be Dequeued</param>
+		protected void taskAllPilotsEngage(SimplePriorityQueue<Ped> targetQ)
+		{
+			for (int i = 0; i < strafeVehiclesList.Count; i++)
+			{
+				Vehicle veh = strafeVehiclesList[i];
+
+				if (i < targetQ.Count)
+					taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
+
+				else taskPilotEngage(veh.Driver, veh, _targetPos);
+			}
 		}
 
 
@@ -367,7 +389,6 @@ namespace GFPS
 
 
 
-
 		/// <summary>
 		/// Initialize the cinematic camera for the strafe run.
 		/// </summary>
@@ -382,6 +403,23 @@ namespace GFPS
 			//cam.InterpTo()
 
 			return cam;
+		}
+
+
+
+		/// <summary>
+		/// Determine how many of 
+		/// </summary>
+		/// <param name="initialTargets"></param>
+		/// <returns></returns>
+		protected int getKillCount(List<Ped> initialTargets)
+		{
+			int count = 0;
+
+			foreach (Ped p in initialTargets)
+				if (p.IsDead) count++;
+			
+			return count;
 		}
 		#endregion
 	}
