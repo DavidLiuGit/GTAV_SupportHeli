@@ -149,7 +149,7 @@ namespace GFPS
 			supportHeli.rg = heliRg;
 
 			// read in settings for Strafe Run
-			strafeRun = new StrafeRun(275f, 200f, true);
+			strafeRun = new StrafeRun(275f, 225f, true);
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);

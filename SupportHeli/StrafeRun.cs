@@ -50,7 +50,7 @@ namespace GFPS
 			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
 		};
 		//protected readonly uint[] formationWeapons = new uint[] { 955522731, 968648323, 955522731, 968648323 };
-		protected readonly uint[] formationWeapons = new uint[] { 519052682, 955522731, 955522731, 519052682 };
+		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682 };
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
@@ -151,11 +151,13 @@ namespace GFPS
 			_spawnTime = Game.GameTime;
 			_targetPos = targetPos;
 
-			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, numVehicles);
+			// acquire initial targets
 			SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius, true);
-			Notification.Show("Targets found: " + targetQ.Count);
 			initialTargetList = targetQ.ToList();
+
+			// spawn a strafing vehicle formation
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / 2);
+			Notification.Show("Targets found: " + targetQ.Count);
 			taskAllPilotsEngage(targetQ);
 
 			// mark the target position with flare ptfx
@@ -221,8 +223,9 @@ namespace GFPS
 		/// <returns>Collection of strafing vehicles in the formation</returns>
 		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, int N)
 		{
-			// impose limit on N; init empty stack of size N
+			// impose lower & upper limits on N. 1 < N < # vehicles in formation definition
 			if (N > formationOffsets.Length) N = formationOffsets.Length;
+			else if (N < 1) N = 1;
 			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
