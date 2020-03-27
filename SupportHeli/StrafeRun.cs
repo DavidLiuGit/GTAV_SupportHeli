@@ -22,7 +22,7 @@ namespace GFPS
 		protected float _height;
 		protected float _radius;
 		protected int _timeout = 20000;		// _timeout after 15 seconds
-		protected float _searchRadius = 20f;
+		protected float _searchRadius = 30f;
 		protected int numVehicles = 3;
 
 		// flags
@@ -57,6 +57,8 @@ namespace GFPS
 		protected Camera cinematicCam;
 		protected RelationshipGroup relGroup;
 		protected List<Ped> initialTargetList;
+		protected ParticleEffect targetMarkerPtfx;
+		protected ParticleEffectAsset targetMarkerPtfxAsset = new ParticleEffectAsset("core");
 		#endregion
 
 
@@ -70,6 +72,8 @@ namespace GFPS
 			_radius = radius;
 			_cinematic = cinematic;
 			relGroup = Game.Player.Character.RelationshipGroup;
+
+			targetMarkerPtfxAsset.Request();
 		}
 
 
@@ -113,8 +117,19 @@ namespace GFPS
 				}
 
 				strafeVehiclesList.Clear();
+
+				foreach (Ped p in initialTargetList)
+					p.MarkAsNoLongerNeeded();
 			}
 			catch { }
+
+			// free PTFX assets from memory, and remove end any particle FX
+			try
+			{
+				//if (force) targetMarkerPtfxAsset.MarkAsNoLongerNeeded();
+				targetMarkerPtfx.Delete();
+			}
+			catch { Screen.ShowHelpTextThisFrame("Error trying to delete targetMarker"); }
 		}
 		#endregion
 
@@ -143,6 +158,9 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 			taskAllPilotsEngage(targetQ);
 
+			// mark the target position with flare ptfx
+			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
+
 			// render from cinematic cam if requested
 			if (_cinematic)
 			{
@@ -154,7 +172,7 @@ namespace GFPS
 
 
 		/// <summary>
-		/// 
+		/// Invoke periodically. Handles 
 		/// </summary>
 		public void strafeRunOnTick()
 		{
@@ -408,10 +426,10 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Determine how many of 
+		/// Determine how many Peds in a List are deceased.
 		/// </summary>
-		/// <param name="initialTargets"></param>
-		/// <returns></returns>
+		/// <param name="initialTargets"><c>List</c> of Peds</param>
+		/// <returns>number of Peds in the provided list that are dead</returns>
 		protected int getKillCount(List<Ped> initialTargets)
 		{
 			int count = 0;
