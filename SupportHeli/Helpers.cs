@@ -83,5 +83,47 @@ namespace GFPS
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg1Hash, rg2Hash);
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg2Hash, rg1Hash);
 		}
+
+
+
+
+		#region trigonometry
+		/// <summary>
+		/// Given a normalized direction Vector3, return a set of Euler angles, describing Rot[ZXY] (i.e. pitch, roll, yaw).
+		/// All angles are in degrees. Roll will be set to 0.0
+		/// </summary>
+		/// <returns><c>Vector3</c> whose x, y, z angles represent pitch, roll, and yaw angles respectively. Angles are in degrees.</returns>
+		public static Vector3 getEulerAngles(Vector3 normDirectionVector)
+		{
+			// calculate angles
+			float yaw = (float)(Math.Atan2(normDirectionVector.Y, normDirectionVector.X) * 180 / Math.PI) - 90f;
+			float pitch = (float)(Math.Asin(normDirectionVector.Z) * (180 / Math.PI));
+
+			// build the vector & add the offset angle (forwardAngle), if given
+			return new Vector3(pitch, 0f, yaw);		// applied in order: pitch, yaw, roll
+		}
+
+
+
+		/// <summary>
+		/// Rotate a 3D vector about the Z-axis (yaw) by a specified angle.
+		/// </summary>
+		/// <param name="input">Original vector</param>
+		/// <param name="angle">Angle, in degrees, to rotate about the Z-axis</param>
+		/// <returns></returns>
+		public static Vector3 rotateVectorZAxis(Vector3 input, float angleDegrees)
+		{
+			// convert angle to radians
+			float angleRad = (float) (angleDegrees / 180f * Math.PI);
+
+			// x' = x cos θ − y sin θ
+			input.X = (float)(input.X * Math.Cos(angleRad) - input.Y * Math.Sin(angleRad));
+
+			// y' = x sin θ + y cos θ
+			input.Y = (float)(input.X * Math.Sin(angleRad) + input.Y * Math.Cos(angleRad));
+
+			return input;
+		}
+		#endregion
 	}
 }
