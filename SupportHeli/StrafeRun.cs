@@ -67,7 +67,7 @@ namespace GFPS
 
 
 
-		#region constructor
+		#region constructorDestructor
 		public StrafeRun(float radius, float height, float targetRadius, bool cinematic = true)
 		{
 			// settings

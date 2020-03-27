@@ -104,6 +104,10 @@ namespace GFPS
 				if (Game.IsKeyPressed(Keys.Delete))
 					cleanUp(false);
 
+				// if player is currently aiming
+				else if (Game.Player.IsAiming)
+					strafeRun.spawnStrafeRun(World.GetCrosshairCoordinates().HitPosition);
+
 				// no modifiers
 				strafeRun.spawnStrafeRun(Game.Player.Character.Position);
 			}
