@@ -23,7 +23,10 @@ namespace GFPS
 		string Developer = "iLike2Teabag";
 		string Version = "1.0";
 		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
+
+		// activation keys
 		Keys activateKey = Keys.F10;
+		Keys strafeRunActivateKey = Keys.F11;
 
 
 		public Main()
@@ -140,16 +143,22 @@ namespace GFPS
 			
 			// read in settings for Attack Heli
 			sec = "AttackHeli";
-			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
+			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), 
+				ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			RelationshipGroup heliRg = attackHeli.rg;
 
 			// read in settings for Support Heli
 			sec = "SupportHeli";
-			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
+			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), 
+				ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			supportHeli.rg = heliRg;
 
 			// read in settings for Strafe Run
-			strafeRun = new StrafeRun(275f, 225f, true);
+			sec = "JetStrafeRun";
+			strafeRunActivateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("activateKey", sec) ?? "F11");
+			strafeRun = new StrafeRun(
+				float.Parse(ini.Read("spawnHeight", sec)), float.Parse(ini.Read("spawnRadius", sec)),
+				float.Parse(ini.Read("targetRadius", sec)), bool.Parse(ini.Read("cinematic", sec)));
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);

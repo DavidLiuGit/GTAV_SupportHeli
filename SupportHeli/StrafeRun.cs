@@ -40,17 +40,19 @@ namespace GFPS
 		protected const float cinematicCamFov = 65f;
 		protected readonly Vector3 cinematicCameraOffset = new Vector3(5f, -15f, 8f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
+		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
 
 		// formation consts
 		protected const float formationOffsetUnit = 50f;
-		protected readonly Vector3[] formationOffsets = new Vector3[] {				// fingertip formation strong right
+		protected readonly Vector3[] formationOffsets = new Vector3[] {				// Vic formation
 			Vector3.Zero, 
 			new Vector3(-formationOffsetUnit, -formationOffsetUnit, -10f),
  			new Vector3(formationOffsetUnit, -formationOffsetUnit, -10f),
-			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
+			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f),
+			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
 		};
 		//protected readonly uint[] formationWeapons = new uint[] { 955522731, 968648323, 955522731, 968648323 };
-		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682 };
+		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
@@ -66,13 +68,16 @@ namespace GFPS
 
 
 		#region constructor
-		public StrafeRun(float radius, float height, bool cinematic = true)
+		public StrafeRun(float radius, float height, float targetRadius, bool cinematic = true)
 		{
+			// settings
 			_height = height;
 			_radius = radius;
 			_cinematic = cinematic;
-			relGroup = Game.Player.Character.RelationshipGroup;
+			_searchRadius = targetRadius;
 
+			// other preparations
+			relGroup = Game.Player.Character.RelationshipGroup;
 			targetMarkerPtfxAsset.Request();
 		}
 
@@ -118,6 +123,7 @@ namespace GFPS
 
 				strafeVehiclesList.Clear();
 
+				// free each ped in the initial targets list
 				foreach (Ped p in initialTargetList)
 					p.MarkAsNoLongerNeeded();
 			}
@@ -156,7 +162,7 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 
 			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / 2);
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / vehiclesPerInitialTarget);
 			Notification.Show("Targets found: " + targetQ.Count);
 			taskAllPilotsEngage(targetQ);
 
