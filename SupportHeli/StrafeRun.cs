@@ -37,8 +37,8 @@ namespace GFPS
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
-		protected const float cinematicCamFov = 65f;
-		protected readonly Vector3 cinematicCameraOffset = new Vector3(5f, -15f, 8f);
+		protected const float cinematicCamFov = 40f;
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -20f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
 
@@ -164,7 +164,7 @@ namespace GFPS
 			// spawn a strafing vehicle formation
 			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / vehiclesPerInitialTarget);
 			Notification.Show("Targets found: " + targetQ.Count);
-			taskAllPilotsEngage(targetQ);
+			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
 			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
@@ -369,7 +369,8 @@ namespace GFPS
 		/// than targets, the remaining pilots will fire at the original target position.
 		/// </summary>
 		/// <param name="targetQ"><c>SimplePriorityQueue</c> of Peds, from which targets will be Dequeued</param>
-		protected void taskAllPilotsEngage(SimplePriorityQueue<Ped> targetQ)
+		/// <param name="fireAtPosition">if true, jets with no Ped to engage will instead shoot at targetPos</param>
+		protected void taskAllPilotsEngage(SimplePriorityQueue<Ped> targetQ, bool fireAtPosition = false)
 		{
 			for (int i = 0; i < strafeVehiclesList.Count; i++)
 			{
@@ -378,7 +379,8 @@ namespace GFPS
 				if (i < targetQ.Count)
 					taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
 
-				else taskPilotEngage(veh.Driver, veh, _targetPos);
+				else if (fireAtPosition)
+					taskPilotEngage(veh.Driver, veh, _targetPos);
 			}
 		}
 

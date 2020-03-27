@@ -96,6 +96,18 @@ namespace GFPS
 					attackHeli.spawnMannedHeli(Game.Player.Character);
 			}
 
+
+			// strafe run activateKey pressed
+			else if (e.KeyCode == strafeRunActivateKey)
+			{
+				// Delete also pressed
+				if (Game.IsKeyPressed(Keys.Delete))
+					cleanUp(false);
+
+				// no modifiers
+				strafeRun.spawnStrafeRun(Game.Player.Character.Position);
+			}
+
 		}
 
 
