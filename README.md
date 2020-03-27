@@ -44,3 +44,13 @@ By default, `[activateKey]` is `F10`. This can be changed in settings.
 * land near player: `PageDown + [activateKey]`
 * enter heli: hold `[enterVehicle]` after heli has landed
 * fly to destination (or hover if no waypoint is set): `Tab + [activateKey]`
+
+---
+
+
+---
+
+## Development & Contributing
+
+### Dependencies
+* [Optimized Priority Queue](https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/wiki/Getting-Started)
