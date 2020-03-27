@@ -9,6 +9,8 @@ using GTA.Math;
 using GTA.Native;
 using GTA.UI;
 
+using Priority_Queue;
+
 
 namespace GFPS
 {
@@ -20,6 +22,8 @@ namespace GFPS
 		protected float _height;
 		protected float _radius;
 		protected int _timeout = 20000;		// _timeout after 15 seconds
+		protected float _searchRadius = 20f;
+		protected int numVehicles = 3;
 
 		// flags
 		protected bool _isActive;
@@ -34,7 +38,7 @@ namespace GFPS
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
 		protected const float cinematicCamFov = 85f;
-		protected readonly Vector3 cinematicCameraOffset = new Vector3(25f, -25f, 3f);
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(5f, -25f, 8f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 
 		// formation consts
@@ -45,10 +49,11 @@ namespace GFPS
  			new Vector3(formationOffsetUnit, -formationOffsetUnit, -10f),
 			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
 		};
+		//protected readonly uint[] formationWeapons = new uint[] { 955522731, 968648323, 955522731, 968648323 };
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682 };
 
 		// object references
-		protected Stack<Vehicle> strafeVehicleStack = new Stack<Vehicle>();
+		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
 		protected Camera cinematicCam;
 		protected RelationshipGroup relGroup;
 		#endregion
@@ -86,7 +91,7 @@ namespace GFPS
 
 			try
 			{
-				foreach (Vehicle strafeVehicle in strafeVehicleStack)
+				foreach (Vehicle strafeVehicle in strafeVehiclesList)
 				{
 					strafeVehicle.AttachedBlip.Delete();
 
@@ -106,7 +111,7 @@ namespace GFPS
 					}
 				}
 
-				strafeVehicleStack.Clear();
+				strafeVehiclesList.Clear();
 			}
 			catch { }
 		}
@@ -131,12 +136,13 @@ namespace GFPS
 			_targetPos = targetPos;
 
 			// spawn a strafing vehicle formation
-			strafeVehicleStack = spawnStrafeVehiclesInFormation(targetPos, 4);
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, numVehicles);
+			strafeRunOnTick();
 
 			// render from cinematic cam if requested
 			if (_cinematic)
 			{
-				cinematicCam = initCinematicCam(strafeVehicleStack.Peek());
+				cinematicCam = initCinematicCam(strafeVehiclesList[strafeVehiclesList.Count - 1]);
 				World.RenderingCamera = cinematicCam;
 			}
 		}
@@ -160,15 +166,32 @@ namespace GFPS
 			}
 
 			// compute the last vehicle's distance to the target
-			float currDistance = strafeVehicleStack.Peek().Position.DistanceTo2D(_targetPos);
+			float currDistance = strafeVehiclesList[strafeVehiclesList.Count - 1].Position.DistanceTo2D(_targetPos);
 			if (currDistance > _lastDistance)
 			{
-				Notification.Show("Strafe run complete; dimissing");
+				Notification.Show("Strafe run complete; dismissing");
 				destructor(false);				// if the vehicle is getting further away from target, dismiss
 			}
+
+			// otherwise, task the pilots to engage targets in the priority queue
 			else
 			{
+				// update distance
 				_lastDistance = currDistance;
+
+				// assign pilots to targets in the target priority queue
+				SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius);
+				Screen.ShowHelpTextThisFrame("Targets found: " + targetQ.Count);
+				for (int i = 0; i < strafeVehiclesList.Count; i++)
+				{
+					Vehicle veh = strafeVehiclesList[i];
+
+					// 
+					if (i < targetQ.Count)
+						taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
+
+					else taskPilotEngage(veh.Driver, veh, _targetPos);
+				}
 			}
 		}
 		#endregion
@@ -183,11 +206,11 @@ namespace GFPS
 		/// <param name="targetPos">Current target position</param>
 		/// <param name="N">Number of vehicles in the formation</param>
 		/// <returns>Collection of strafing vehicles in the formation</returns>
-		protected Stack<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, int N)
+		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, int N)
 		{
 			// impose limit on N; init empty stack of size N
 			if (N > formationOffsets.Length) N = formationOffsets.Length;
-			Stack<Vehicle> strafeVehicles = new Stack<Vehicle>(N);
+			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
 			Vector3 formationAnchorPos = Helper.getOffsetVector3(_height, _radius) + targetPos;
@@ -200,8 +223,7 @@ namespace GFPS
 			{
 				Vehicle strafeVehicle = spawnStrafeVehicle(formationAnchorPos, initialEulerAngle, n);
 				Ped pilot = spawnStrafePilot(strafeVehicle, n);			// spawn pilot into vehicle
-				taskPilotEngage(pilot, strafeVehicle, Game.Player.Character.Position);
-				strafeVehicles.Push(strafeVehicle);
+				strafeVehicles.Add(strafeVehicle);
 			}
 
 			return strafeVehicles;
@@ -243,11 +265,59 @@ namespace GFPS
 
 
 		/// <summary>
+		/// Build a queue of potential targets to engage from peds found within a World search. Highest
+		/// priority targets are at the beginning of the queue.
+		/// </summary>
+		/// <param name="searchOrigin">center (origin) of Ped search</param>
+		/// <param name="searchRadius">radius of Ped search</param>
+		/// <param name="targetNeutral">Whether not to target Peds with neutral relationship</param>
+		/// <returns></returns>
+		protected SimplePriorityQueue<Ped> buildTargetPriorityQueue(Vector3 searchOrigin, float searchRadius, bool targetNeutral = true)
+		{
+			// init empty list
+			SimplePriorityQueue<Ped> targetQ = new SimplePriorityQueue<Ped>();
+
+			// get all Peds near the search origin
+			Ped[] nearbyPeds = World.GetNearbyPeds(searchOrigin, searchRadius);
+
+			// add Peds to the queue based on their relationship with the player
+			Ped player = Game.Player.Character;
+			foreach (Ped ped in nearbyPeds)
+			{
+				// if ped is not alive, do not add to queue
+				if (!ped.IsAlive) continue;
+
+				// check if the ped is the player; do not add to queue if so, and warn the player of danger
+				else if (player == ped)
+				{
+					Notification.Show("Warning: you are in the air strike splash zone!");
+					continue;
+				}
+
+				// determine the Ped's relationship with the player
+				Relationship rel = ped.GetRelationshipWithPed(player);
+
+				// if the relationship is positive, do not add ped to target queue
+				if ((int)rel <= 2) continue;
+
+				// if relationship is Neutral or Pedestrian, and targetNeutral is true, add to queue with rank = 3
+				else if (targetNeutral && (rel == Relationship.Neutral || rel == Relationship.Pedestrians))
+					targetQ.Enqueue(ped, 3);
+
+				// otherwise, the relationship is negative (dislike/hate); add to queue
+				else targetQ.Enqueue(ped, 5 - (int)rel);
+			}
+
+			return targetQ;
+		}
+
+
+
+		/// <summary>
 		/// Spawn a pilot into the strafe run vehicle, and task the pilot with flying towards the target,
 		/// while simultaneously shooting at the target.
 		/// </summary>
 		/// <param name="veh">Reference t othe strafe run vehicle</param>
-		/// 
 		/// <param name="n">The nth pilot in the strafing formation</param>
 		/// <returns></returns>
 		protected Ped spawnStrafePilot(Vehicle veh, int n)
@@ -307,7 +377,7 @@ namespace GFPS
 		{
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, cinematicCamFov);
 			cam.AttachTo(strafingVeh, cinematicCameraOffset);
-			cam.PointAt(strafingVeh);
+			cam.PointAt(_targetPos);
 			
 			//cam.InterpTo()
 
