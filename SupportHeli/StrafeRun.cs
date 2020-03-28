@@ -89,17 +89,9 @@ namespace GFPS
 		/// </summary>
 		/// <param name="force"></param>
 		public virtual void destructor(bool force = false){
-			// reset settings
-			_isActive = false;
-			_lastDistance = float.PositiveInfinity;
-
-			// reset to default camera
-			if (_cinematic)
-			{
-				Game.Player.Character.IsInvincible = _playerInvincibilityState;
-				World.RenderingCamera = null;
-				cinematicCam.Delete();
-			}
+			// if the strafe run is not currently active, and the force flag is false, then do nothing
+			if (!_isActive && !force)
+				return;
 
 			try
 			{
@@ -138,6 +130,22 @@ namespace GFPS
 				targetMarkerPtfx.Delete();
 			}
 			catch { Screen.ShowHelpTextThisFrame("Error trying to delete targetMarker"); }
+
+			// try to reset cinematic camera to default game cam
+			try
+			{
+				if (_cinematic)
+				{
+					Game.Player.Character.IsInvincible = _playerInvincibilityState;
+					World.RenderingCamera = null;
+					cinematicCam.Delete();
+				}
+			}
+			catch { Screen.ShowHelpTextThisFrame("Error trying to reset camera"); }
+
+			// reset settings
+			_isActive = false;
+			_lastDistance = float.PositiveInfinity;
 		}
 		#endregion
 
