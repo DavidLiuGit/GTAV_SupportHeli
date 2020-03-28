@@ -4,7 +4,7 @@ A GTA5 mod that that enables the player to call in air support.
 ---
 ## Installation
 * place `SupportHeli.dll` and `SupportHeli.ini` in your `scripts` folder
-* **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/common/data/ai`
+* **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/mpbattle/common/data/ai`
   * this modified file moderately extends the range and fire rate of the B-11 Strikeforce's cannon
 * Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
 * Make sure you have installed [.NET 4.8 Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net48)
