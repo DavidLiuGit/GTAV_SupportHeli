@@ -28,7 +28,7 @@ namespace GFPS
 		// consts
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
-		protected const float warpIntoDistanceThreshold = 4f;
+		protected const float warpIntoDistanceThreshold = 6f;
 		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different height
 		protected const BlipColor defaultBlipColor = BlipColor.Green;
 

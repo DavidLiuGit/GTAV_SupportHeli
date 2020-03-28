@@ -98,7 +98,12 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 #### 2.1.1
 - added ability to delete all ground crew and helis using Delete + activateKey
 #### 2.1
-- added ini settings for ground crew 
+- added ini settings for ground crew
+
+
+### Known bugs
+- ENT bodyguards do not work well with gunners and guards spawned with this script. Avoid spawning ENT bodyguards while using this script.
+- Valkyrie gunners are still dumb
 
 
 ### Contributing
