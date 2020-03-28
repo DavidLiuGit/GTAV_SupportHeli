@@ -26,7 +26,7 @@ namespace GFPS
 
 		// activation keys
 		Keys activateKey = Keys.F10;
-		Keys strafeRunActivateKey = Keys.F11;
+		Keys strafeRunActivateKey = Keys.F12;
 
 
 		public Main()
