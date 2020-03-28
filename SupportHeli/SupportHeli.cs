@@ -23,7 +23,10 @@ namespace GFPS
 		string Developer = "iLike2Teabag";
 		string Version = "1.0";
 		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
+
+		// activation keys
 		Keys activateKey = Keys.F10;
+		Keys strafeRunActivateKey = Keys.F11;
 
 
 		public Main()
@@ -84,17 +87,38 @@ namespace GFPS
 				else if (Game.IsKeyPressed(Keys.Tab))
 					supportHeli.pilotTasking(Heli.HeliPilotTask.FlyToDestination);
 
+				// End also pressed
+				else if (Game.IsKeyPressed(Keys.End))
+					strafeRun.spawnStrafeRun(Game.Player.Character.Position);
+
 				// no modifiers
 				else
 					attackHeli.spawnMannedHeli(Game.Player.Character);
+			}
+
+
+			// strafe run activateKey pressed
+			else if (e.KeyCode == strafeRunActivateKey)
+			{
+				// Delete also pressed
+				if (Game.IsKeyPressed(Keys.Delete))
+					cleanUp(false);
+
+				// if player is currently aiming
+				else if (Game.Player.IsAiming)
+					strafeRun.spawnStrafeRun(World.GetCrosshairCoordinates().HitPosition);
+
+				// no modifiers
+				strafeRun.spawnStrafeRun(Game.Player.Character.Position);
 			}
 
 		}
 
 
 
+
 		int iTick = 0;
-		int N = 100;
+		int N = 75;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
@@ -110,14 +134,19 @@ namespace GFPS
 			attackHeli.pilotTasking();
 			supportHeli.pilotTasking();
 
+			// manipulate strafe run if active
+			strafeRun.strafeRunOnTick();
+
 			// handle ground crew actions
 			updateGroundCrewActions();
 		}
 		
 
+
 		// instances of Heli to track
 		Attackheli attackHeli;
 		SupportHeli supportHeli;
+		StrafeRun strafeRun;
 		GroundCrewSettings crewSettings = new GroundCrewSettings();
 
 		/// <summary>
@@ -130,13 +159,22 @@ namespace GFPS
 			
 			// read in settings for Attack Heli
 			sec = "AttackHeli";
-			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
+			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), 
+				ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			RelationshipGroup heliRg = attackHeli.rg;
 
 			// read in settings for Support Heli
 			sec = "SupportHeli";
-			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), ini.Read("radius", sec), ini.Read("bulletproof", sec));
+			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), 
+				ini.Read("radius", sec), ini.Read("bulletproof", sec));
 			supportHeli.rg = heliRg;
+
+			// read in settings for Strafe Run
+			sec = "JetStrafeRun";
+			strafeRunActivateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("activateKey", sec) ?? "F11");
+			strafeRun = new StrafeRun(
+				float.Parse(ini.Read("spawnHeight", sec)), float.Parse(ini.Read("spawnRadius", sec)),
+				float.Parse(ini.Read("targetRadius", sec)), bool.Parse(ini.Read("cinematic", sec)));
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);
@@ -201,6 +239,7 @@ namespace GFPS
 			// clean up helis
 			attackHeli.destructor(force);
 			supportHeli.destructor(force);
+			strafeRun.destructor(force);
 			
 			// clean up any ground crew
 			PedGroup playerPedGrp = Game.Player.Character.PedGroup;

@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -51,9 +52,16 @@
     <Compile Include="CrewHandler.cs" />
     <Compile Include="HeliHandler.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="StrafeRun.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportHeliHandler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\_cloned\High-Speed-Priority-Queue-for-C-Sharp\Priority Queue\Priority Queue.csproj">
+      <Project>{1531c1ea-bd53-41d1-a34b-cfcdf79d2651}</Project>
+      <Name>Priority Queue</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
