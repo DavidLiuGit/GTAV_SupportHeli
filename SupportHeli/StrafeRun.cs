@@ -39,10 +39,10 @@ namespace GFPS
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 25f;
 		protected const float cinematicCamFov = 30f;
-		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -25f, 5f);
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(1.5f, -30f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
-		protected readonly Vector3 spawnPositionEvaluationOffset = new Vector3(0f, 0f, -50f);
+		protected readonly Vector3 spawnPositionEvaluationOffset = new Vector3(0f, 0f, -65f);
 
 		// formation consts
 		protected const float formationOffsetUnit = 50f;
@@ -250,7 +250,7 @@ namespace GFPS
 			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 10);//Helper.getOffsetVector3(_height, _radius) + targetPos;
 			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - formationAnchorPos).Normalized);
 			initialEulerAngle.X = 0f;				// reduce initial pitch 
-			initialEulerAngle.Z += 20.0f;			// offset initial yaw by 30 degrees (clockwise)
+			initialEulerAngle.Z += 15.0f;			// offset initial yaw by 30 degrees (clockwise)
 
 			// spawn individual strafe vehicles and push onto the stack
 			for (int n = 0; n < N; n++)
@@ -324,7 +324,7 @@ namespace GFPS
 				// check if the ped is the player; do not add to queue if so, and warn the player of danger
 				else if (player == ped)
 				{
-					Screen.ShowHelpTextThisFrame("Warning: you are in the air strike splash zone!");
+					if (!_cinematic) Screen.ShowHelpTextThisFrame("Warning: you are in the air strike splash zone!");
 					continue;
 				}
 
