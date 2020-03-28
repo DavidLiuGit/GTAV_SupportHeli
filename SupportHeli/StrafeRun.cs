@@ -212,7 +212,7 @@ namespace GFPS
 			if (currDistance > _lastDistance)
 			{
 				Notification.Show("Strafe run complete. " + getKillCount(initialTargetList) + 
-					" of " + initialTargetList.Count + " targets KIA.");
+					" of " + initialTargetList.Count + " initial targets KIA.");
 				destructor(false);				// if the vehicle is getting further away from target, dismiss
 			}
 
