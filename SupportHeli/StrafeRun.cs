@@ -33,6 +33,7 @@ namespace GFPS
 		protected int _spawnTime;
 		protected Vector3 _targetPos;
 		protected float _lastDistance = float.PositiveInfinity;		// on each tick, measure the 2D distance to the target
+		protected bool _playerInvincibilityState;
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
@@ -95,6 +96,7 @@ namespace GFPS
 			// reset to default camera
 			if (_cinematic)
 			{
+				Game.Player.Character.IsInvincible = _playerInvincibilityState;
 				World.RenderingCamera = null;
 				cinematicCam.Delete();
 			}
@@ -165,8 +167,7 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 
 			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / vehiclesPerInitialTarget);
-			//Notification.Show("Targets found: " + targetQ.Count);
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, (targetQ.Count+2) / vehiclesPerInitialTarget);
 			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
@@ -193,7 +194,7 @@ namespace GFPS
 			// if active, check if timed out;
 			if (Game.GameTime - _spawnTime > _timeout)
 			{
-				Notification.Show("Strafe run timed out; dismissing");
+				//Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
 				return;
 			}
@@ -428,6 +429,11 @@ namespace GFPS
 		/// <returns></returns>
 		protected Camera initCinematicCam(Vehicle strafingVeh)
 		{
+			// store whether the player is invincible before activation of cinematic cam; then make player invincible
+			_playerInvincibilityState = Game.Player.IsInvincible;		// restored when the cinematic cam is destroyed
+			Game.Player.IsInvincible = true;
+
+			// create and manipulate the cinematic cam
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, cinematicCamFov);
 			cam.AttachTo(strafingVeh, cinematicCameraOffset);
 			cam.PointAt(_targetPos);
