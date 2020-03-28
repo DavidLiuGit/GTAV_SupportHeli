@@ -33,11 +33,12 @@ namespace GFPS
 		protected int _spawnTime;
 		protected Vector3 _targetPos;
 		protected float _lastDistance = float.PositiveInfinity;		// on each tick, measure the 2D distance to the target
+		protected bool _playerInvincibilityState;
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
-		protected const float cinematicCamFov = 40f;
+		protected const float cinematicCamFov = 30f;
 		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -20f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
@@ -95,6 +96,7 @@ namespace GFPS
 			// reset to default camera
 			if (_cinematic)
 			{
+				Game.Player.Character.IsInvincible = _playerInvincibilityState;
 				World.RenderingCamera = null;
 				cinematicCam.Delete();
 			}
@@ -152,6 +154,9 @@ namespace GFPS
 			// do nothing if a strafe run is already active
 			if (_isActive) return;
 
+			// sanity check the target position
+			if (targetPos == Vector3.Zero) return;
+
 			// otherwise, spawn the strafe run
 			_isActive = true;
 			_spawnTime = Game.GameTime;
@@ -162,8 +167,7 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 
 			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / vehiclesPerInitialTarget);
-			Notification.Show("Targets found: " + targetQ.Count);
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, (targetQ.Count+2) / vehiclesPerInitialTarget);
 			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
@@ -190,7 +194,7 @@ namespace GFPS
 			// if active, check if timed out;
 			if (Game.GameTime - _spawnTime > _timeout)
 			{
-				Notification.Show("Strafe run timed out; dismissing");
+				//Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
 				return;
 			}
@@ -312,7 +316,7 @@ namespace GFPS
 				// check if the ped is the player; do not add to queue if so, and warn the player of danger
 				else if (player == ped)
 				{
-					Notification.Show("Warning: you are in the air strike splash zone!");
+					Screen.ShowHelpTextThisFrame("Warning: you are in the air strike splash zone!");
 					continue;
 				}
 
@@ -425,6 +429,11 @@ namespace GFPS
 		/// <returns></returns>
 		protected Camera initCinematicCam(Vehicle strafingVeh)
 		{
+			// store whether the player is invincible before activation of cinematic cam; then make player invincible
+			_playerInvincibilityState = Game.Player.IsInvincible;		// restored when the cinematic cam is destroyed
+			Game.Player.IsInvincible = true;
+
+			// create and manipulate the cinematic cam
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, cinematicCamFov);
 			cam.AttachTo(strafingVeh, cinematicCameraOffset);
 			cam.PointAt(_targetPos);

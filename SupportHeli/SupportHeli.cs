@@ -118,7 +118,7 @@ namespace GFPS
 
 
 		int iTick = 0;
-		int N = 100;
+		int N = 75;
 		private void onNthTick (object sender, EventArgs e) 
 		{
 			// if not the Nth tick, reset
