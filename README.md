@@ -71,7 +71,7 @@ By default, `[activateKey]` is `F10`. This can be changed in settings.
 
 ---
 ## Development
-If you have feedback or questions, I want to hear them. You can leave a comment on the gta5-mods.com page, or as an issue on the GitHub repo. I also welcome contributions to the code - just open a pull request.
+If you have feedback or questions, I want to hear them. You can leave a comment on the [gta5-mods.com](https://www.gta5-mods.com/scripts/support-helicopter) page, or as an issue on the [GitHub repo](https://github.com/DavidLiuGit/GTAV_SupportHeli). I also welcome contributions to the code - just open a pull request.
 
 
 ### Changelog
@@ -107,5 +107,5 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Contributing
-This mod relies on the following 3rd party libraries:
+Pull requests on [GitHub](https://github.com/DavidLiuGit/GTAV_SupportHeli) are welcomed. This mod relies on the following 3rd party libraries:
 * [Optimized Priority Queue](https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/wiki/Getting-Started)

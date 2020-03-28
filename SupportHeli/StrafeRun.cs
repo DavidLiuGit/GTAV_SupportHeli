@@ -37,7 +37,7 @@ namespace GFPS
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
-		protected const float initialAirSpeed = 30f;
+		protected const float initialAirSpeed = 50f;
 		protected const float cinematicCamFov = 30f;
 		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -20f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
@@ -52,7 +52,6 @@ namespace GFPS
 			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f),
 			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
 		};
-		//protected readonly uint[] formationWeapons = new uint[] { 955522731, 968648323, 955522731, 968648323 };
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
 		// object references
