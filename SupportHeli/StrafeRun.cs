@@ -37,11 +37,12 @@ namespace GFPS
 
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
-		protected const float initialAirSpeed = 50f;
+		protected const float initialAirSpeed = 25f;
 		protected const float cinematicCamFov = 30f;
-		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -20f, 5f);
+		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -25f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
+		protected readonly Vector3 spawnPositionEvaluationOffset = new Vector3(0f, 0f, -50f);
 
 		// formation consts
 		protected const float formationOffsetUnit = 50f;
@@ -125,7 +126,7 @@ namespace GFPS
 			// free PTFX assets from memory, and remove end any particle FX
 			try
 			{
-				//if (force) targetMarkerPtfxAsset.MarkAsNoLongerNeeded();
+				if (force) targetMarkerPtfxAsset.MarkAsNoLongerNeeded();
 				targetMarkerPtfx.Delete();
 			}
 			catch { Screen.ShowHelpTextThisFrame("Error trying to delete targetMarker"); }
@@ -246,7 +247,7 @@ namespace GFPS
 			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
-			Vector3 formationAnchorPos = Helper.getOffsetVector3(_height, _radius) + targetPos;
+			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 10);//Helper.getOffsetVector3(_height, _radius) + targetPos;
 			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - formationAnchorPos).Normalized);
 			initialEulerAngle.X = 0f;				// reduce initial pitch 
 			initialEulerAngle.Z += 20.0f;			// offset initial yaw by 30 degrees (clockwise)
@@ -465,6 +466,34 @@ namespace GFPS
 				if (p.IsDead) count++;
 			
 			return count;
+		}
+
+
+
+		/// <summary>
+		/// Get a suitable spawn position for the strafe run, based on Raycast results. A spawn
+		/// position is considered suitable if it has a clear LOS to the target position.
+		/// </summary>
+		/// <param name="targetPos">Target position</param>
+		/// <param name="maxTrials">Max tries before giving up and returning a random position</param>
+		/// <returns></returns>
+		protected Vector3 getValidSpawnPosition(Vector3 targetPos, int maxTrials = 5)
+		{
+			Vector3 trialPosition;
+			for (int i = 0; i < maxTrials; i++)
+			{
+				trialPosition = Helper.getOffsetVector3(_height, _radius) + targetPos;
+
+				// if a raycast from the trialPosition to the target position is good, return this position
+				if (Helper.evaluateRaycast(trialPosition + spawnPositionEvaluationOffset, targetPos))
+				{
+					//Notification.Show("Found valid position after " + i + " tries.");
+					return trialPosition;
+				}
+			}
+
+			//Notification.Show("No valid positions found after " + maxTrials + " tries.");
+			return Helper.getOffsetVector3(_height, _radius) + targetPos;
 		}
 		#endregion
 	}
