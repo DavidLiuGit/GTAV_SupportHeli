@@ -37,7 +37,7 @@ namespace GFPS
 		// consts
 		protected const BlipColor defaultBlipColor = BlipColor.Orange;
 		protected const float initialAirSpeed = 30f;
-		protected const float cinematicCamFov = 40f;
+		protected const float cinematicCamFov = 30f;
 		protected readonly Vector3 cinematicCameraOffset = new Vector3(3f, -20f, 5f);
 		protected readonly Model strafeVehicleModel = (Model)((int)1692272545u);	// B11 Strikeforce
 		protected const int vehiclesPerInitialTarget = 3;							// # vehs = # targets / vehiclesPerInitialTarget
@@ -152,6 +152,9 @@ namespace GFPS
 			// do nothing if a strafe run is already active
 			if (_isActive) return;
 
+			// sanity check the target position
+			if (targetPos == Vector3.Zero) return;
+
 			// otherwise, spawn the strafe run
 			_isActive = true;
 			_spawnTime = Game.GameTime;
@@ -163,7 +166,7 @@ namespace GFPS
 
 			// spawn a strafing vehicle formation
 			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, targetQ.Count / vehiclesPerInitialTarget);
-			Notification.Show("Targets found: " + targetQ.Count);
+			//Notification.Show("Targets found: " + targetQ.Count);
 			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
@@ -312,7 +315,7 @@ namespace GFPS
 				// check if the ped is the player; do not add to queue if so, and warn the player of danger
 				else if (player == ped)
 				{
-					Notification.Show("Warning: you are in the air strike splash zone!");
+					Screen.ShowHelpTextThisFrame("Warning: you are in the air strike splash zone!");
 					continue;
 				}
 
