@@ -242,6 +242,10 @@ namespace GFPS
 			cleanUp(true);
 		}
 
+		/// <summary>
+		/// Script destructor; cleans up assets created by the script as necessary
+		/// </summary>
+		/// <param name="force"></param>
 		private void cleanUp(bool force)
 		{
 			// clean up helis
@@ -283,6 +287,7 @@ namespace GFPS
 		/// while markStrafeWithFlareShellActive is true, call this method; If a flare shell is found,
 		/// and it has collided with something, launch strafe run at the flare's position.
 		/// </summary>
+		/// <returns><c>true</c> if a strafe run was spawned</returns>
 		private bool markStrafeRunWithFlareGunListener()
 		{
 			Prop[] nearbyFlareShells = World.GetNearbyProps(Game.Player.Character.Position, 300f, flareShellModel);
