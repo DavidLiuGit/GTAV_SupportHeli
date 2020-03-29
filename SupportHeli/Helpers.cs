@@ -125,5 +125,47 @@ namespace GFPS
 			return input;
 		}
 		#endregion
+
+
+
+
+		#region raycasting
+		/// <summary>
+		/// Determine whether a ray can be cast from source to target without hitting the map
+		/// </summary>
+		/// <param name="source">Position of source</param>
+		/// <param name="target">Position of target</param>
+		/// <returns></returns>
+		public static bool evaluateRaycast(Vector3 source, Vector3 target)
+		{
+			return !World.Raycast(source, target, IntersectFlags.Map).DidHit;
+		}
+
+
+
+		/// <summary>
+		/// Compute how many rays can hit their target without colliding into the map.
+		/// </summary>
+		/// <param name="source">Position of the ray source</param>
+		/// <param name="targetList">List of positions to target in Raycast</param>
+		/// <returns></returns>
+		public static int evaluateRaycastHits(Vector3 source, List<Vector3> targetList)
+		{
+			int collisionCount = 0;
+
+			// iterate over targets in targetList
+			foreach (Vector3 target in targetList)
+			{
+				// raycast from source to target
+				RaycastResult rr = World.Raycast(source, target, IntersectFlags.Map);
+
+				// if the ray collided with the map before reaching the target, increment collisionCount
+				if (rr.DidHit) collisionCount++;
+			}
+
+			// return the number of rays that successfully reached their target
+			return targetList.Count - collisionCount;
+		}
+		#endregion
 	}
 }

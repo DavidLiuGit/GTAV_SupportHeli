@@ -1,23 +1,25 @@
 # Air Support
-A GTA5 mod that that enables the player to call in air support.
+A GTA5 mod that that enables the player to call in air support, in the form of Precision Air Strike (Strafe Run), Attack Heli, and Support Heli.
 
 ---
 ## Installation
 * place `SupportHeli.dll` and `SupportHeli.ini` in your `scripts` folder
 * **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/mpbattle/common/data/ai`
-  * this modified file moderately extends the range and fire rate of the B-11 Strikeforce's cannon
+  * this modified file moderately extends the range and increases the fire rate of the B-11 Strikeforce's cannon
 * Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
 * Make sure you have installed [.NET 4.8 Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 
 ---
 ## Precision Air Strike (Strafe Run) - BETA
-A formation of jets (B-11 Strikeforce) is spawned and attacks any NPCs (except friendly NPCs) near a target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
+A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
 
 *This feature is currently in beta testing. I appreciate your patience while I work out the bugs, and welcome all feedback to help improve this feature.*
 
 ### Usage
-By default, `[activateKey]` is `F12`. This can be changed in settings.
-* spawn: press `[activateKey]` while aiming at some position
+By default, `[activateKey]` is `F12`. This can be changed in settings. Call in a strafe run using any method below
+1. While aiming, press `[activateKey]`
+2. Press `[activateKey]`. You will be given a flare gun to mark the position of the strafe run. The run begins after the flare hits something (e.g. the ground, vehicles, NPCs, etc.)
+
 
 ### Tips
 * It is **highly recommended** to use a modified `vehicleweapons_strikeforce.meta`, to extend the range and fire rate of the Strikeforce's cannon. See installation details on how to do this.
@@ -75,6 +77,10 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.0.2 (beta)
+- implemented an alternative method of calling in a strafe run, using the flare gun
+- improved logic of choosing spawn position for the strafe run
+  - this should result in fewer strafe runs blocked by the map (buildings and terrain)
 #### 3.0.1 (beta)
 - hotfix: corrected vehicleweapons_strikeforce.meta installation path 
 #### 3.0 (beta)
