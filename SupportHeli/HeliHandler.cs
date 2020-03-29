@@ -28,7 +28,7 @@ namespace GFPS
 		// consts
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
-		protected const float warpIntoDistanceThreshold = 4f;
+		protected const float warpIntoDistanceThreshold = 6f;
 		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different height
 		protected const BlipColor defaultBlipColor = BlipColor.Green;
 
@@ -236,7 +236,7 @@ namespace GFPS
 		/// <param name="p">Ped to land near</param>
 		/// <param name="maxSpeed">max speed</param>
 		/// <param name="targetRadius">how close the heli should be landed to the ped</param>
-		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 20f, bool verbose = true)
+		public void landNearLeader(float maxSpeed = 100f, float targetRadius = 3f, bool verbose = true)
 		{
 			Vector3 pedPos = Helper.getVector3NearTarget(targetRadius, _leader.Position);
 			const int missionFlag = 20;			// 20 = LandNearPed
@@ -254,6 +254,9 @@ namespace GFPS
 			pilot.BlockPermanentEvents = true;
 			_pilotTask = HeliPilotTask.Land;
 			if (verbose) GTA.UI.Notification.Show("Heli: landing near player");
+
+			// mark the landing zone with a flare
+			float gndHeight = World.GetGroundHeight((Vector2)pedPos);
 		}
 
 

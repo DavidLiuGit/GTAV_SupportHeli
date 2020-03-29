@@ -1,23 +1,25 @@
 # Air Support
-A GTA5 mod that that enables the player to call in air support.
+A GTA5 mod that that enables the player to call in air support, in the form of Precision Air Strike (Strafe Run), Attack Heli, and Support Heli.
 
 ---
 ## Installation
 * place `SupportHeli.dll` and `SupportHeli.ini` in your `scripts` folder
 * **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/mpbattle/common/data/ai`
-  * this modified file moderately extends the range and fire rate of the B-11 Strikeforce's cannon
+  * this modified file moderately extends the range and increases the fire rate of the B-11 Strikeforce's cannon
 * Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
 * Make sure you have installed [.NET 4.8 Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 
 ---
 ## Precision Air Strike (Strafe Run) - BETA
-A formation of jets (B-11 Strikeforce) is spawned and attacks any NPCs (except friendly NPCs) near a target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
+A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
 
 *This feature is currently in beta testing. I appreciate your patience while I work out the bugs, and welcome all feedback to help improve this feature.*
 
 ### Usage
-By default, `[activateKey]` is `F12`. This can be changed in settings.
-* spawn: press `[activateKey]` while aiming at some position
+By default, `[activateKey]` is `F12`. This can be changed in settings. Call in a strafe run using any method below
+1. While aiming, press `[activateKey]`
+2. Press `[activateKey]`. You will be given a flare gun to mark the position of the strafe run. The run begins after the flare hits something (e.g. the ground, vehicles, NPCs, etc.)
+
 
 ### Tips
 * It is **highly recommended** to use a modified `vehicleweapons_strikeforce.meta`, to extend the range and fire rate of the Strikeforce's cannon. See installation details on how to do this.
@@ -68,10 +70,48 @@ By default, `[activateKey]` is `F10`. This can be changed in settings.
 * fly to destination (or hover if no waypoint is set): `Tab + [activateKey]`
 * resume chasing player (after landing): `PageUp + [activateKey]`
 
----
-## Feedback & Contributing
-If you have feedback or questions, I want to hear them. You can leave a comment on the gta5-mods.com page, or as an issue on the GitHub repo. I also welcome contributions to the code - just open a pull request.
 
-### Dev Dependencies
-This mod relies on the following:
+---
+## Development
+If you have feedback or questions, I want to hear them. You can leave a comment on the [gta5-mods.com](https://www.gta5-mods.com/scripts/support-helicopter) page, or as an issue on the [GitHub repo](https://github.com/DavidLiuGit/GTAV_SupportHeli). I also welcome contributions to the code - just open a pull request.
+
+
+### Changelog
+#### 3.0.2 (beta)
+- implemented an alternative method of calling in a strafe run, using the flare gun
+- improved logic of choosing spawn position for the strafe run
+  - this should result in fewer strafe runs blocked by the map (buildings and terrain)
+#### 3.0.1 (beta)
+- hotfix: corrected vehicleweapons_strikeforce.meta installation path 
+#### 3.0 (beta)
+- first release to include precision air strike strafe runs!
+#### 2.3.1
+- fixed Attack Heli gunner tasking after chase & engage
+#### 2.3
+- added chase & engage for Attack Heli
+#### 2.2.2
+- Support Heli will now stay on the ground after player enters it; use Tab+F10 (or your custom activate key) to fly to destination/hover
+- bodyguards will now enter the Heli with you
+#### 2.2.1
+- Fixed broken heli spawning after switching playable characters
+- slight change to heli "taxi" cruise altitude
+#### 2.2
+- Implemented support heli landing & fly-to-destination
+#### 2.1.3
+- Support Heli will now spawn with gunners instead of having crew rappeling immediately when the heli is spawned. This makes the Support Heli more useful
+#### 2.1.2
+- made deletion more graceful: Helis will fly away and ground crew will no longer follow player
+#### 2.1.1
+- added ability to delete all ground crew and helis using Delete + activateKey
+#### 2.1
+- added ini settings for ground crew
+
+
+### Known bugs
+- ENT bodyguards do not work well with gunners and guards spawned with this script. Avoid spawning ENT bodyguards while using this script.
+- Valkyrie gunners are still dumb
+
+
+### Contributing
+Pull requests on [GitHub](https://github.com/DavidLiuGit/GTAV_SupportHeli) are welcomed. This mod relies on the following 3rd party libraries:
 * [Optimized Priority Queue](https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/wiki/Getting-Started)

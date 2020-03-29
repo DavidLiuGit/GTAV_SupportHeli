@@ -26,7 +26,11 @@ namespace GFPS
 
 		// activation keys
 		Keys activateKey = Keys.F10;
-		Keys strafeRunActivateKey = Keys.F11;
+		Keys strafeRunActivateKey = Keys.F12;
+
+		// flags
+		private bool markStrafeWithFlareShellActive = false;
+		private readonly Model flareShellModel = (Model)665801196;
 
 
 		public Main()
@@ -109,7 +113,8 @@ namespace GFPS
 					strafeRun.spawnStrafeRun(World.GetCrosshairCoordinates().HitPosition);
 
 				// no modifiers
-				strafeRun.spawnStrafeRun(Game.Player.Character.Position);
+				activateMarkStrafeRunWithFlareGun();
+				//strafeRun.spawnStrafeRun(Game.Player.Character.Position);
 			}
 
 		}
@@ -136,6 +141,9 @@ namespace GFPS
 
 			// manipulate strafe run if active
 			strafeRun.strafeRunOnTick();
+
+			if (markStrafeWithFlareShellActive)
+				markStrafeRunWithFlareGunListener();
 
 			// handle ground crew actions
 			updateGroundCrewActions();
@@ -248,6 +256,48 @@ namespace GFPS
 				playerPedGrp.Remove(p);			// remove the ped from player's PedGroup
 				CrewHandler.crewDestructor(p, force);
 			}
+		}
+
+
+
+		/// <summary>
+		/// Give the player a flare gun to mark the position of a strafe run with
+		/// </summary>
+		private void activateMarkStrafeRunWithFlareGun()
+		{
+			if (markStrafeRunWithFlareGunListener())
+				return;
+
+			// give player flare gun and ammo
+			Weapon flareGun = Game.Player.Character.Weapons.Give(WeaponHash.FlareGun, 1, true, true);
+			flareGun.AmmoInClip = 1;
+
+			// set the flag as active
+			markStrafeWithFlareShellActive = true;
+
+			// display prompt on screen
+			GTA.UI.Notification.Show("Mark target position of strafe run with the ~o~flare gun.");
+		}
+
+		/// <summary>
+		/// while markStrafeWithFlareShellActive is true, call this method; If a flare shell is found,
+		/// and it has collided with something, launch strafe run at the flare's position.
+		/// </summary>
+		private bool markStrafeRunWithFlareGunListener()
+		{
+			Prop[] nearbyFlareShells = World.GetNearbyProps(Game.Player.Character.Position, 300f, flareShellModel);
+			if (nearbyFlareShells.Length > 0)
+			{
+				if (nearbyFlareShells[0].HasCollided || nearbyFlareShells[0].Speed < 1.0f)
+				{
+					strafeRun.spawnStrafeRun(nearbyFlareShells[0].Position);
+					markStrafeWithFlareShellActive = false;
+					nearbyFlareShells[0].Delete();
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }
