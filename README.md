@@ -81,6 +81,7 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 - implemented an alternative method of calling in a strafe run, using the flare gun
 - improved logic of choosing spawn position for the strafe run
   - this should result in fewer strafe runs blocked by the map (buildings and terrain)
+- updated `vehicleweapons_strikeforce.meta` to increase range and fire rate of Strikeforce's missiles
 #### 3.0.1 (beta)
 - hotfix: corrected vehicleweapons_strikeforce.meta installation path 
 #### 3.0 (beta)
