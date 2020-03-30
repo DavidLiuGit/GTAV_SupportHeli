@@ -248,10 +248,15 @@ namespace GFPS
 		/// <param name="force"></param>
 		private void cleanUp(bool force)
 		{
-			// clean up helis
-			attackHeli.destructor(force);
-			supportHeli.destructor(force);
-			strafeRun.destructor(force);
+			// try to clean up helis
+			try
+			{
+				attackHeli.destructor(force);
+				supportHeli.destructor(force);
+				strafeRun.destructor(force);
+			}
+			catch { }
+
 			
 			// clean up any ground crew
 			PedGroup playerPedGrp = Game.Player.Character.PedGroup;
