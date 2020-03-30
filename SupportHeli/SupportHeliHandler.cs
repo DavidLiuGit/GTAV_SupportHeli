@@ -27,8 +27,6 @@ namespace GFPS
 		public SupportHeli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
 			base(iniName, iniHeight, iniRadius, iniBulletproof)
 		{
-			isAttackHeli = false;
-
 			// get the player's current PedGroup (or create a new one if player is not in one)
 			leaderPedGroup = _leader.PedGroup;
 			if (leaderPedGroup == null)

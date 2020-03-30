@@ -29,9 +29,9 @@ namespace GFPS
 		#region constructor
 		public Attackheli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
 			base(iniName, iniHeight, iniRadius, iniBulletproof)
-		{
-			isAttackHeli = true;
-		}
+		{ }
+
+		public Attackheli(HeliModel m, float h, float r, bool bp) : base(m, h, r, bp) { }
 
 
 		public override void destructor(bool force = false)

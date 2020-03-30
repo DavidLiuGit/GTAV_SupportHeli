@@ -20,7 +20,6 @@ namespace GFPS
 		protected bool bulletproof;
 
 		// flags 
-		protected bool isAttackHeli;
 		protected bool _isActive = false;
 		protected bool canRappel = false;
 		protected bool pilotLand = false;

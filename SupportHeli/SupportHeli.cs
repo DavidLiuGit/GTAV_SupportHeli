@@ -113,7 +113,8 @@ namespace GFPS
 					strafeRun.spawnStrafeRun(World.GetCrosshairCoordinates().HitPosition);
 
 				// no modifiers
-				activateMarkStrafeRunWithFlareGun();
+				else
+					activateMarkStrafeRunWithFlareGun();
 				//strafeRun.spawnStrafeRun(Game.Player.Character.Position);
 			}
 
@@ -161,14 +162,23 @@ namespace GFPS
 		/// Read settings from INI file and instantiate necessary data structures with the settings.
 		/// </summary>
 		private void readSettings (bool verbose = false) {
+			// init ScriptSettings
+			ScriptSettings ss = base.Settings;
+
 			// read in general settings
 			string sec = "General";
-			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey", sec) ?? "F10");
+			activateKey = ss.GetValue<Keys>(sec, "activate", activateKey);
 			
 			// read in settings for Attack Heli
 			sec = "AttackHeli";
-			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), 
-				ini.Read("radius", sec), ini.Read("bulletproof", sec));
+			attackHeli = new Attackheli(
+				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Hunter),
+				ss.GetValue<float>(sec, "height", 20f),
+				ss.GetValue<float>(sec, "radius", 20f),
+				ss.GetValue<bool>(sec, "bulletproof", true)
+				);
+				/*ini.Read("heliModel", sec), ini.Read("height", sec), 
+				ini.Read("radius", sec), ini.Read("bulletproof", sec));*/
 			RelationshipGroup heliRg = attackHeli.rg;
 
 			// read in settings for Support Heli
