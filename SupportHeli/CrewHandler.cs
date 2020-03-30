@@ -239,13 +239,13 @@ namespace GFPS
 		/// Create instance of GroundCrewSettings from an INI file
 		/// </summary>
 		/// <param name="ini">instance of <c>IniFile</c></param>
-		public GroundCrewSettings(LapTimer.IniFile ini)
+		public GroundCrewSettings(ScriptSettings ss)
 		{
 			const string section = "GroundCrew";
-			health = int.Parse(ini.Read("health", section));
-			isInvincible = Convert.ToBoolean(int.Parse(ini.Read("invincible", section)));
-			canRagdoll = Convert.ToBoolean(int.Parse(ini.Read("canRagdoll", section)));
-			canWrithe = Convert.ToBoolean(int.Parse(ini.Read("canWrithe", section)));
+			health = ss.GetValue<int>(section, "health", health);
+			isInvincible = ss.GetValue<bool>(section, "invincible", isInvincible);
+			canRagdoll = ss.GetValue<bool>(section, "canRagdoll", canRagdoll);
+			canWrithe = ss.GetValue<bool>(section, "canWrithe", canWrithe);
 		}
 
 

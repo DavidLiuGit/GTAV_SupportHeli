@@ -14,13 +14,12 @@ namespace GFPS
 	public class Heli
 	{
 		// settings
-		protected HeliModel model;
-		protected float height;
-		protected float radius;
-		protected bool bulletproof;
+		protected HeliModel _model;
+		protected float _height;
+		protected float _radius;
+		protected bool _isBulletproof;
 
 		// flags 
-		protected bool isAttackHeli;
 		protected bool _isActive = false;
 		protected bool canRappel = false;
 		protected bool pilotLand = false;
@@ -29,7 +28,7 @@ namespace GFPS
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 		protected const float warpIntoDistanceThreshold = 6f;
-		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different height
+		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different _height
 		protected const BlipColor defaultBlipColor = BlipColor.Green;
 
 		// object references
@@ -37,7 +36,7 @@ namespace GFPS
 		public Vehicle heli;
 		public Ped pilot;
 		public Ped[] passengers;
-		public RelationshipGroup rg;
+		public RelationshipGroup _rg;
 		protected Random rng = new Random();
 
 		// state machines
@@ -63,32 +62,22 @@ namespace GFPS
 
 		#region constructorDestructor
 		/// <summary>
-		/// Instantiate Heli  template with string settings read in from INi file. 
-		/// If settings invalid, use default settings.
+		/// Instantiate Heli with parameters.
 		/// </summary>
-		/// <param name="iniName">Model name of the helicopter to use</param>
-		/// <param name="iniHeight">hover height of the helicopter</param>
-		/// <param name="iniRadius">hover radius of the helicopter</param>
-		/// <param name="iniBulletproof">Whether the helicopter is bulletproof</param>
-		public Heli(string iniName, string iniHeight, string iniRadius, string iniBulletproof)
-			: this (
-				(HeliModel) Enum.Parse(typeof(HeliModel), iniName ?? "Akula" ),
-				float.Parse(iniHeight ?? "30.0"),
-				float.Parse(iniRadius ?? "20.0"),
-				Convert.ToBoolean(int.Parse(iniBulletproof ?? "1"))
-			)
-		{}
-
-		public Heli(HeliModel m, float h, float r, bool bp)
+		/// <param name="model">Model name of the helicopter to use</param>
+		/// <param name="height">hover _height of the helicopter</param>
+		/// <param name="radius">hover _radius of the helicopter</param>
+		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
+		public Heli(HeliModel model, float height, float radius, bool bulletproof)
 		{
-			model = m;
-			height = h;
-			radius = r;
-			bulletproof = bp;
+			_model = model;
+			_height = height;
+			_radius = radius;
+			_isBulletproof = bulletproof;
 
 			// instantiate a relationship group
 			_leader = Game.Player.Character;
-			rg = _leader.RelationshipGroup;
+			_rg = _leader.RelationshipGroup;
 		}
 
 
@@ -144,7 +133,7 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(height, radius));
+				heli = spawnHeli(Helper.getOffsetVector3(_height, _radius));
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				_isActive = true;
@@ -173,7 +162,7 @@ namespace GFPS
 		public string getSettingsString()
 		{
 			return string.Format("Heli: {0}~n~ Height: {1}~n~ Radius: {2}~n~ Bulletproof: {3}",
-				model, height, radius, bulletproof);
+				_model, _height, _radius, _isBulletproof);
 		}
 
 
@@ -224,7 +213,7 @@ namespace GFPS
 		public void holdPositionAbovePlayer()
 		{
 			pilot.AlwaysKeepTask = false;
-			Vector3 positionToHold = _leader.Position + Helper.getOffsetVector3(height, radius);
+			Vector3 positionToHold = _leader.Position + Helper.getOffsetVector3(_height, _radius);
 			pilot.Task.DriveTo(heli, positionToHold, 2.5f, 20.0f);
 		}
 
@@ -284,11 +273,11 @@ namespace GFPS
 			// otherwise, set the target to some point above the current position
 			else
 			{
-				target = heli.Position + Helper.getOffsetVector3(height);
+				target = heli.Position + Helper.getOffsetVector3(_height);
 				GTA.UI.Notification.Show("Support Heli: hovering.");
 			}
 
-			int cruiseAltitude = Convert.ToInt32(cruiseAltitudeMultiplier * height);
+			int cruiseAltitude = Convert.ToInt32(cruiseAltitudeMultiplier * _height);
 
 			/* void TASK_HELI_MISSION(Ped pilot, Vehicle aircraft, Vehicle targetVehicle, Ped targetPed, 
 			float destinationX, float destinationY, float destinationZ, int missionFlag, float maxSpeed, 
@@ -335,7 +324,7 @@ namespace GFPS
 			try
 			{
 				Vector3 playerPos = _leader.Position;
-				pilot.Task.ChaseWithHelicopter(_leader, Helper.getOffsetVector3(height, radius));
+				pilot.Task.ChaseWithHelicopter(_leader, Helper.getOffsetVector3(_height, _radius));
 				pilot.AlwaysKeepTask = true;
 			}
 			catch
@@ -355,11 +344,11 @@ namespace GFPS
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
 			// spawn in heli and apply settings
-			Vehicle heli = World.CreateVehicle((Model)((int)model), _leader.Position + offset);
+			Vehicle heli = World.CreateVehicle((Model)((int)_model), _leader.Position + offset);
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;
-			heli.IsBulletProof = bulletproof;
+			heli.IsBulletProof = _isBulletproof;
 
 			// attach a blip (rotating helicopter)
 			heli.AddBlip();
@@ -382,7 +371,7 @@ namespace GFPS
 			pilot.CanBeDraggedOutOfVehicle = false;
 
 			// create a heli RelationshipGroup and add pilot to it; make heli and player's group allies
-			pilot.RelationshipGroup = rg;
+			pilot.RelationshipGroup = _rg;
 
 			// give pilot sidearm
 			pilot.Weapons.Give(sidearm, 9999, true, true);
@@ -412,7 +401,7 @@ namespace GFPS
 			Ped gunner = heli.CreatePedOnSeat(seat, PedHash.Blackops01SMY);
 
 			// ally the crew to the player
-			gunner.RelationshipGroup = rg;
+			gunner.RelationshipGroup = _rg;
 
 			// give crew weapons in weaponArray, plus a standard issue sidearm
 			giveWeapons(gunner, weaponArray);
@@ -449,7 +438,7 @@ namespace GFPS
 
 		#region virtualHelpers
 		/// <summary>
-		/// Based on the model of the heli, spawn in the required personel.
+		/// Based on the _model of the heli, spawn in the required personel.
 		/// </summary>
 		/// <returns>Array of NPCs spawned into the heli</returns>
 		protected virtual Ped[] spawnCrewIntoHeli()

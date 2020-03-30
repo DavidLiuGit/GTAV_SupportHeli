@@ -16,10 +16,10 @@ namespace GFPS
 		static Random rng = new Random();
 
 		/// <summary>
-		/// Generate an offset Vector3. Offset by specified height, and at a random point in a circle, defined by <c>haloRadius</c>
+		/// Generate an offset Vector3. Offset by specified _height, and at a random point in a circle, defined by <c>haloRadius</c>
 		/// </summary>
-		/// <param name="height">height, in meters</param>
-		/// <param name="haloRadius">radius of circle to pick a point from</param>
+		/// <param name="_height">_height, in meters</param>
+		/// <param name="haloRadius">_radius of circle to pick a point from</param>
 		/// <returns></returns>
 		public static Vector3 getOffsetVector3(float height, float haloRadius = 0.0f)
 		{
@@ -49,9 +49,9 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Given a target position and a radius, return a random coordinate on the edge of the circle.
+		/// Given a target position and a _radius, return a random coordinate on the edge of the circle.
 		/// </summary>
-		/// <param name="radius">Radius of the circle, in meters</param>
+		/// <param name="_radius">Radius of the circle, in meters</param>
 		/// <param name="playerPos"><c>Vector3</c> representing player's position</param>
 		/// <returns></returns>
 		public static Vector3 getVector3NearTarget(float radius, Vector3 targetPos)

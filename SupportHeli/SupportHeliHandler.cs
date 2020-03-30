@@ -24,11 +24,17 @@ namespace GFPS
 		protected VehicleSeat[] seatSelection;
 
 
-		public SupportHeli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
-			base(iniName, iniHeight, iniRadius, iniBulletproof)
-		{
-			isAttackHeli = false;
 
+		/// <summary>
+		/// Instantiate Heli with parameters.
+		/// </summary>
+		/// <param name="model">Model name of the helicopter to use</param>
+		/// <param name="height">hover _height of the helicopter</param>
+		/// <param name="radius">hover _radius of the helicopter</param>
+		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
+		public SupportHeli(HeliModel model, float height, float radius, bool bulletproof)
+			: base(model, height, radius, bulletproof)
+		{
 			// get the player's current PedGroup (or create a new one if player is not in one)
 			leaderPedGroup = _leader.PedGroup;
 			if (leaderPedGroup == null)
@@ -39,10 +45,9 @@ namespace GFPS
 			leaderPedGroup.SeparationRange = 99999f;
 			leaderPedGroup.Formation = Formation.Circle2;
 
-			// set the list of seats (based on helicopter model, but temporarily all the same)
+			// set the list of seats (based on helicopter _model, but temporarily all the same)
 			seatSelection = new VehicleSeat[] { VehicleSeat.LeftRear, VehicleSeat.RightRear };
 		}
-
 
 
 		#region publicMethods
@@ -104,7 +109,7 @@ namespace GFPS
 		{
 			List<Ped> newCrew = new List<Ped>();
 
-			switch (model)
+			switch (_model)
 			{
 				case HeliModel.Polmav:
 				case HeliModel.Maverick:

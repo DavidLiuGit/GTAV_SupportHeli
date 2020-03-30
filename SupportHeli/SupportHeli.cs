@@ -113,7 +113,8 @@ namespace GFPS
 					strafeRun.spawnStrafeRun(World.GetCrosshairCoordinates().HitPosition);
 
 				// no modifiers
-				activateMarkStrafeRunWithFlareGun();
+				else
+					activateMarkStrafeRunWithFlareGun();
 				//strafeRun.spawnStrafeRun(Game.Player.Character.Position);
 			}
 
@@ -161,31 +162,45 @@ namespace GFPS
 		/// Read settings from INI file and instantiate necessary data structures with the settings.
 		/// </summary>
 		private void readSettings (bool verbose = false) {
+			// init ScriptSettings
+			ScriptSettings ss = base.Settings;
+
 			// read in general settings
 			string sec = "General";
-			activateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("hotkey", sec) ?? "F10");
+			activateKey = ss.GetValue<Keys>(sec, "activate", activateKey);
 			
 			// read in settings for Attack Heli
 			sec = "AttackHeli";
-			attackHeli = new Attackheli(ini.Read("heliModel", sec), ini.Read("height", sec), 
-				ini.Read("radius", sec), ini.Read("bulletproof", sec));
-			RelationshipGroup heliRg = attackHeli.rg;
+			attackHeli = new Attackheli(
+				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Hunter),
+				ss.GetValue<float>(sec, "height", 20f),
+				ss.GetValue<float>(sec, "radius", 20f),
+				ss.GetValue<bool>(sec, "bulletproof", true)
+				);
+			RelationshipGroup heliRg = attackHeli._rg;
 
 			// read in settings for Support Heli
 			sec = "SupportHeli";
-			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), 
-				ini.Read("radius", sec), ini.Read("bulletproof", sec));
-			supportHeli.rg = heliRg;
+			supportHeli = new SupportHeli(
+				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Hunter),
+				ss.GetValue<float>(sec, "height", 20f),
+				ss.GetValue<float>(sec, "radius", 20f),
+				ss.GetValue<bool>(sec, "bulletproof", true)
+				);
+			supportHeli._rg = heliRg;
 
 			// read in settings for Strafe Run
 			sec = "JetStrafeRun";
-			strafeRunActivateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("activateKey", sec) ?? "F11");
+			strafeRunActivateKey = ss.GetValue<Keys>(sec, "activateKey", strafeRunActivateKey);
 			strafeRun = new StrafeRun(
-				float.Parse(ini.Read("spawnHeight", sec)), float.Parse(ini.Read("spawnRadius", sec)),
-				float.Parse(ini.Read("targetRadius", sec)), bool.Parse(ini.Read("cinematic", sec)));
+				ss.GetValue<float>(sec, "spawnRadius", 375f),
+				ss.GetValue<float>(sec, "spawnHeight", 275f),
+				ss.GetValue<float>(sec, "targetRadius", 50f),
+				ss.GetValue<bool>(sec, "cinematic", true)
+				);
 
 			// read in settings for ground crew
-			crewSettings = new GroundCrewSettings(ini);
+			crewSettings = new GroundCrewSettings(ss);
 
 			// manipulate heliRg
 			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
@@ -242,12 +257,21 @@ namespace GFPS
 			cleanUp(true);
 		}
 
+		/// <summary>
+		/// Script destructor; cleans up assets created by the script as necessary
+		/// </summary>
+		/// <param name="force"></param>
 		private void cleanUp(bool force)
 		{
-			// clean up helis
-			attackHeli.destructor(force);
-			supportHeli.destructor(force);
-			strafeRun.destructor(force);
+			// try to clean up helis
+			try
+			{
+				attackHeli.destructor(force);
+				supportHeli.destructor(force);
+				strafeRun.destructor(force);
+			}
+			catch { }
+
 			
 			// clean up any ground crew
 			PedGroup playerPedGrp = Game.Player.Character.PedGroup;
@@ -283,6 +307,7 @@ namespace GFPS
 		/// while markStrafeWithFlareShellActive is true, call this method; If a flare shell is found,
 		/// and it has collided with something, launch strafe run at the flare's position.
 		/// </summary>
+		/// <returns><c>true</c> if a strafe run was spawned</returns>
 		private bool markStrafeRunWithFlareGunListener()
 		{
 			Prop[] nearbyFlareShells = World.GetNearbyProps(Game.Player.Character.Position, 300f, flareShellModel);

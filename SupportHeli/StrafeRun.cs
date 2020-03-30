@@ -69,6 +69,13 @@ namespace GFPS
 
 
 		#region constructorDestructor
+		/// <summary>
+		/// Instantiate a StrafeRun controller
+		/// </summary>
+		/// <param name="radius">XY-plane Distance from the target position of each strafe run to spawn</param>
+		/// <param name="height">Z-axis, or height, above the target position of each strafe run to spawn</param>
+		/// <param name="targetRadius">Distance around the target position to detect targets each strafe run</param>
+		/// <param name="cinematic">if <c>true</c>, activate cinematic camera on each strafe run</param>
 		public StrafeRun(float radius, float height, float targetRadius, bool cinematic = true)
 		{
 			// settings
@@ -247,7 +254,7 @@ namespace GFPS
 			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
-			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 10);//Helper.getOffsetVector3(_height, _radius) + targetPos;
+			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 20);
 			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - formationAnchorPos).Normalized);
 			initialEulerAngle.X = 0f;				// reduce initial pitch 
 			initialEulerAngle.Z += 15.0f;			// offset initial yaw by 30 degrees (clockwise)
@@ -303,7 +310,7 @@ namespace GFPS
 		/// priority targets are at the beginning of the queue.
 		/// </summary>
 		/// <param name="searchOrigin">center (origin) of Ped search</param>
-		/// <param name="searchRadius">radius of Ped search</param>
+		/// <param name="searchRadius">_radius of Ped search</param>
 		/// <param name="targetNeutral">Whether not to target Peds with neutral relationship</param>
 		/// <returns></returns>
 		protected SimplePriorityQueue<Ped> buildTargetPriorityQueue(Vector3 searchOrigin, float searchRadius, bool persistTarget = false)
