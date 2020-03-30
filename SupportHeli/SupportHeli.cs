@@ -200,7 +200,7 @@ namespace GFPS
 				);
 
 			// read in settings for ground crew
-			crewSettings = new GroundCrewSettings(ini);
+			crewSettings = new GroundCrewSettings(ss);
 
 			// manipulate heliRg
 			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
