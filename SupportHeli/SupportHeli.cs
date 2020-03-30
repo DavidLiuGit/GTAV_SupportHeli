@@ -191,10 +191,13 @@ namespace GFPS
 
 			// read in settings for Strafe Run
 			sec = "JetStrafeRun";
-			strafeRunActivateKey = (Keys)Enum.Parse(typeof(Keys), ini.Read("activateKey", sec) ?? "F11");
+			strafeRunActivateKey = ss.GetValue<Keys>(sec, "activateKey", strafeRunActivateKey);
 			strafeRun = new StrafeRun(
-				float.Parse(ini.Read("spawnHeight", sec)), float.Parse(ini.Read("spawnRadius", sec)),
-				float.Parse(ini.Read("targetRadius", sec)), bool.Parse(ini.Read("cinematic", sec)));
+				ss.GetValue<float>(sec, "spawnRadius", 375f),
+				ss.GetValue<float>(sec, "spawnHeight", 275f),
+				ss.GetValue<float>(sec, "targetRadius", 50f),
+				ss.GetValue<bool>(sec, "cinematic", true)
+				);
 
 			// read in settings for ground crew
 			crewSettings = new GroundCrewSettings(ini);
