@@ -27,13 +27,22 @@ namespace GFPS
 
 
 		#region constructor
-		public Attackheli(string iniName, string iniHeight, string iniRadius, string iniBulletproof) :
-			base(iniName, iniHeight, iniRadius, iniBulletproof)
+		/// <summary>
+		/// Instantiate Heli with parameters.
+		/// </summary>
+		/// <param name="model">Model name of the helicopter to use</param>
+		/// <param name="height">hover _height of the helicopter</param>
+		/// <param name="radius">hover _radius of the helicopter</param>
+		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
+		public Attackheli(HeliModel model, float height, float radius, bool bulletproof)
+			: base(model, height, radius, bulletproof)
 		{ }
 
-		public Attackheli(HeliModel m, float h, float r, bool bp) : base(m, h, r, bp) { }
 
-
+		/// <summary>
+		/// Invoke to clean up assets
+		/// </summary>
+		/// <param name="force">If <c>true</c>, assets will be forcibly deleted</param>
 		public override void destructor(bool force = false)
 		{
 			// clear target stack
@@ -103,7 +112,7 @@ namespace GFPS
 			List<Ped> newCrew = new List<Ped>();
 
 			// if multi-seat heli, spawn more shooters
-			switch (model)
+			switch (_model)
 			{
 				case HeliModel.Akula:
 				case HeliModel.Hunter:
@@ -208,7 +217,7 @@ namespace GFPS
 			}
 
 			// task the pilot with chasing the target
-			pilot.Task.ChaseWithHelicopter(currTarget, Helper.getOffsetVector3(height, radius));
+			pilot.Task.ChaseWithHelicopter(currTarget, Helper.getOffsetVector3(_height, _radius));
 			
 			// task the passenger(s) with fighting the target
 			foreach (Ped passenger in heli.Passengers)

@@ -177,15 +177,17 @@ namespace GFPS
 				ss.GetValue<float>(sec, "radius", 20f),
 				ss.GetValue<bool>(sec, "bulletproof", true)
 				);
-				/*ini.Read("heliModel", sec), ini.Read("height", sec), 
-				ini.Read("radius", sec), ini.Read("bulletproof", sec));*/
-			RelationshipGroup heliRg = attackHeli.rg;
+			RelationshipGroup heliRg = attackHeli._rg;
 
 			// read in settings for Support Heli
 			sec = "SupportHeli";
-			supportHeli = new SupportHeli(ini.Read("heliModel", sec), ini.Read("height", sec), 
-				ini.Read("radius", sec), ini.Read("bulletproof", sec));
-			supportHeli.rg = heliRg;
+			supportHeli = new SupportHeli(
+				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Hunter),
+				ss.GetValue<float>(sec, "height", 20f),
+				ss.GetValue<float>(sec, "radius", 20f),
+				ss.GetValue<bool>(sec, "bulletproof", true)
+				);
+			supportHeli._rg = heliRg;
 
 			// read in settings for Strafe Run
 			sec = "JetStrafeRun";

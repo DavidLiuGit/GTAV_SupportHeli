@@ -303,7 +303,7 @@ namespace GFPS
 		/// priority targets are at the beginning of the queue.
 		/// </summary>
 		/// <param name="searchOrigin">center (origin) of Ped search</param>
-		/// <param name="searchRadius">radius of Ped search</param>
+		/// <param name="searchRadius">_radius of Ped search</param>
 		/// <param name="targetNeutral">Whether not to target Peds with neutral relationship</param>
 		/// <returns></returns>
 		protected SimplePriorityQueue<Ped> buildTargetPriorityQueue(Vector3 searchOrigin, float searchRadius, bool persistTarget = false)
