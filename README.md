@@ -3,7 +3,7 @@ A GTA5 mod that that enables the player to call in air support, in the form of P
 
 ---
 ## Installation
-* place `SupportHeli.dll` and `SupportHeli.ini` in your `scripts` folder
+* place `Priority Queue.dll`, `SupportHeli.dll`, and `SupportHeli.ini` in your `scripts` folder
 * **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/mpbattle/common/data/ai`
   * this modified file moderately extends the range and increases the fire rate of the B-11 Strikeforce's cannon
 * Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
@@ -77,7 +77,10 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
-#### 3.0.2 (beta)
+#### 3.0.3 (beta)
+- tweaked default values in INI file
+- implemented various attempts to fix user crashes
+#### 3.0.2 (unreleased)
 - implemented an alternative method of calling in a strafe run, using the flare gun
 - improved logic of choosing spawn position for the strafe run
   - this should result in fewer strafe runs blocked by the map (buildings and terrain)
