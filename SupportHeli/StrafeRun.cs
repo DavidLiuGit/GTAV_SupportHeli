@@ -46,12 +46,13 @@ namespace GFPS
 
 		// formation consts
 		protected const float formationOffsetUnit = 50f;
+		protected const float formationHeightOffsetUnit = 25f;
 		protected readonly Vector3[] formationOffsets = new Vector3[] {				// Vic formation
 			Vector3.Zero, 
-			new Vector3(-formationOffsetUnit, -formationOffsetUnit, -10f),
- 			new Vector3(formationOffsetUnit, -formationOffsetUnit, -10f),
-			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f),
-			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
+			new Vector3(-formationOffsetUnit, -formationOffsetUnit, formationHeightOffsetUnit),
+ 			new Vector3(formationOffsetUnit, -formationOffsetUnit, formationHeightOffsetUnit),
+			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, formationHeightOffsetUnit * 2),
+			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, formationHeightOffsetUnit * 2)
 		};
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
