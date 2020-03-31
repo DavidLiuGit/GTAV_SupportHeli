@@ -46,12 +46,13 @@ namespace GFPS
 
 		// formation consts
 		protected const float formationOffsetUnit = 50f;
+		protected const float formationHeightOffsetUnit = 25f;
 		protected readonly Vector3[] formationOffsets = new Vector3[] {				// Vic formation
 			Vector3.Zero, 
-			new Vector3(-formationOffsetUnit, -formationOffsetUnit, -10f),
- 			new Vector3(formationOffsetUnit, -formationOffsetUnit, -10f),
-			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f),
-			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, -20f)
+			new Vector3(-formationOffsetUnit, -formationOffsetUnit, formationHeightOffsetUnit),
+ 			new Vector3(formationOffsetUnit, -formationOffsetUnit, formationHeightOffsetUnit),
+			new Vector3(-2 * formationOffsetUnit, -2 * formationOffsetUnit, formationHeightOffsetUnit * 2),
+			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, formationHeightOffsetUnit * 2)
 		};
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
@@ -62,6 +63,7 @@ namespace GFPS
 		protected List<Ped> initialTargetList;
 		protected ParticleEffect targetMarkerPtfx;
 		protected ParticleEffectAsset targetMarkerPtfxAsset = new ParticleEffectAsset("core");
+		protected Random rng = new Random();
 		#endregion
 
 
@@ -136,7 +138,7 @@ namespace GFPS
 				if (force) targetMarkerPtfxAsset.MarkAsNoLongerNeeded();
 				targetMarkerPtfx.Delete();
 			}
-			catch { Screen.ShowHelpTextThisFrame("Error trying to delete targetMarker"); }
+			catch { }
 
 			// try to reset cinematic camera to default game cam
 			try
@@ -148,7 +150,7 @@ namespace GFPS
 					cinematicCam.Delete();
 				}
 			}
-			catch { Screen.ShowHelpTextThisFrame("Error trying to reset camera"); }
+			catch { }
 
 			// reset settings
 			_isActive = false;
@@ -182,7 +184,8 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 
 			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, (targetQ.Count+2) / vehiclesPerInitialTarget);
+			int numVehicles = (targetQ.Count+2) / vehiclesPerInitialTarget;
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, initialTargetList, numVehicles);
 			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
@@ -246,7 +249,7 @@ namespace GFPS
 		/// <param name="targetPos">Current target position</param>
 		/// <param name="N">Number of vehicles in the formation</param>
 		/// <returns>Collection of strafing vehicles in the formation</returns>
-		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, int N)
+		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, List<Ped> initialTargetList, int N)
 		{
 			// impose lower & upper limits on N. 1 < N < # vehicles in formation definition
 			if (N > formationOffsets.Length) N = formationOffsets.Length;
@@ -254,7 +257,7 @@ namespace GFPS
 			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
-			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 20);
+			Vector3 formationAnchorPos = getBestValidSpawnPosition(targetPos, initialTargetList, 10, 20);
 			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - formationAnchorPos).Normalized);
 			initialEulerAngle.X = 0f;				// reduce initial pitch 
 			initialEulerAngle.Z += 15.0f;			// offset initial yaw by 30 degrees (clockwise)
@@ -391,13 +394,18 @@ namespace GFPS
 		/// <param name="fireAtPosition">if true, jets with no Ped to engage will instead shoot at targetPos</param>
 		protected void taskAllPilotsEngage(SimplePriorityQueue<Ped> targetQ, bool fireAtPosition = false)
 		{
-			for (int i = 0; i < strafeVehiclesList.Count; i++)
+			int targetCount = targetQ.Count;
+
+			// iterate each vehicle in the strafe run
+			foreach (int i in Enumerable.Range(0,strafeVehiclesList.Count).OrderBy(x => rng.Next()))
 			{
 				Vehicle veh = strafeVehiclesList[i];
 
-				if (i < targetQ.Count)
+				// if there are targets, task the pilot to engage
+				if (i < targetCount)
 					taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
 
+				// if no targets left, and fireAtPosition is true, shoot at targetPos
 				else if (fireAtPosition)
 					taskPilotEngage(veh.Driver, veh, _targetPos);
 			}
@@ -453,8 +461,6 @@ namespace GFPS
 			cam.AttachTo(strafingVeh, cinematicCameraOffset);
 			cam.PointAt(_targetPos);
 			
-			//cam.InterpTo()
-
 			return cam;
 		}
 
@@ -493,14 +499,56 @@ namespace GFPS
 
 				// if a raycast from the trialPosition to the target position is good, return this position
 				if (Helper.evaluateRaycast(trialPosition + spawnPositionEvaluationOffset, targetPos))
-				{
-					//Notification.Show("Found valid position after " + i + " tries.");
 					return trialPosition;
+			}
+
+			return Helper.getOffsetVector3(_height, _radius) + targetPos;
+		}
+
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="targetPos">Target position; origin of target search</param>
+		/// <param name="targets">List of targets</param>
+		/// <param name="numSpawns">Number of valid spawn positions to evaluate</param>
+		/// <param name="maxTrials"></param>
+		/// <returns></returns>
+		protected Vector3 getBestValidSpawnPosition(Vector3 targetPos, List<Ped> targets, int numSpawns = 5, int maxTrials = 5)
+		{
+			Vector3 bestSpawnPos = Vector3.Zero;
+			int bestScore = -1, score;
+
+			// extract positions of targets
+			List<Vector3> targetPositions = targets.Select<Ped, Vector3>(target => target.Position).ToList();
+			
+			// evaluate each valid spawn position
+			Vector3 spawnPosition;
+			for (int i = 0; i < numSpawns; i++)
+			{
+				spawnPosition = getValidSpawnPosition(targetPos, maxTrials);
+
+				// compute the score for this spawn position
+				score = Helper.evaluateRaycastHits(spawnPosition + spawnPositionEvaluationOffset, targetPositions);
+
+				// if a perfect score is achieved, return this position
+				if (score == targets.Count)
+				{
+					GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
+					return spawnPosition;
+				}
+
+				// if the score is not perfect, but better than bestScore, record it
+				else if (score > bestScore)
+				{
+					bestSpawnPos = spawnPosition;
+					bestScore = score;
 				}
 			}
 
-			//Notification.Show("No valid positions found after " + maxTrials + " tries.");
-			return Helper.getOffsetVector3(_height, _radius) + targetPos;
+			GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
+			return bestSpawnPos;
 		}
 		#endregion
 	}
