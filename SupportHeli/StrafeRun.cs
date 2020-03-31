@@ -136,7 +136,7 @@ namespace GFPS
 				if (force) targetMarkerPtfxAsset.MarkAsNoLongerNeeded();
 				targetMarkerPtfx.Delete();
 			}
-			catch { Screen.ShowHelpTextThisFrame("Error trying to delete targetMarker"); }
+			catch { }
 
 			// try to reset cinematic camera to default game cam
 			try
@@ -148,7 +148,7 @@ namespace GFPS
 					cinematicCam.Delete();
 				}
 			}
-			catch { Screen.ShowHelpTextThisFrame("Error trying to reset camera"); }
+			catch { }
 
 			// reset settings
 			_isActive = false;
@@ -391,13 +391,18 @@ namespace GFPS
 		/// <param name="fireAtPosition">if true, jets with no Ped to engage will instead shoot at targetPos</param>
 		protected void taskAllPilotsEngage(SimplePriorityQueue<Ped> targetQ, bool fireAtPosition = false)
 		{
+			int targetCount = targetQ.Count;
+
+			// iterate each vehicle in the strafe run
 			for (int i = 0; i < strafeVehiclesList.Count; i++)
 			{
 				Vehicle veh = strafeVehiclesList[i];
 
-				if (i < targetQ.Count)
+				// if there are targets, task the pilot to engage
+				if (i < targetCount)
 					taskPilotEngage(veh.Driver, veh, targetQ.Dequeue());
 
+				// if no targets left, and fireAtPosition is true, shoot at targetPos
 				else if (fireAtPosition)
 					taskPilotEngage(veh.Driver, veh, _targetPos);
 			}
@@ -453,8 +458,6 @@ namespace GFPS
 			cam.AttachTo(strafingVeh, cinematicCameraOffset);
 			cam.PointAt(_targetPos);
 			
-			//cam.InterpTo()
-
 			return cam;
 		}
 
@@ -493,13 +496,9 @@ namespace GFPS
 
 				// if a raycast from the trialPosition to the target position is good, return this position
 				if (Helper.evaluateRaycast(trialPosition + spawnPositionEvaluationOffset, targetPos))
-				{
-					//Notification.Show("Found valid position after " + i + " tries.");
 					return trialPosition;
-				}
 			}
 
-			//Notification.Show("No valid positions found after " + maxTrials + " tries.");
 			return Helper.getOffsetVector3(_height, _radius) + targetPos;
 		}
 		#endregion
