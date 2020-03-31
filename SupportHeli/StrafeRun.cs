@@ -62,6 +62,7 @@ namespace GFPS
 		protected List<Ped> initialTargetList;
 		protected ParticleEffect targetMarkerPtfx;
 		protected ParticleEffectAsset targetMarkerPtfxAsset = new ParticleEffectAsset("core");
+		protected Random rng = new Random();
 		#endregion
 
 
@@ -395,7 +396,7 @@ namespace GFPS
 			int targetCount = targetQ.Count;
 
 			// iterate each vehicle in the strafe run
-			for (int i = 0; i < strafeVehiclesList.Count; i++)
+			foreach (int i in Enumerable.Range(0,strafeVehiclesList.Count).OrderBy(x => rng.Next()))
 			{
 				Vehicle veh = strafeVehiclesList[i];
 
@@ -520,21 +521,22 @@ namespace GFPS
 
 			// extract positions of targets
 			List<Vector3> targetPositions = targets.Select<Ped, Vector3>(target => target.Position).ToList();
-			List<Vector3> validSpawnPostions = new List<Vector3>(numSpawns);
-
-			// build a list of valid spawn positions
-			for (int i = 0; i < numSpawns; i++)
-				validSpawnPostions.Add(getValidSpawnPosition(targetPos, maxTrials));
-
+			
 			// evaluate each valid spawn position
-			foreach (Vector3 spawnPosition in validSpawnPostions)
+			Vector3 spawnPosition;
+			for (int i = 0; i < numSpawns; i++)
 			{
+				spawnPosition = getValidSpawnPosition(targetPos, maxTrials);
+
 				// compute the score for this spawn position
 				score = Helper.evaluateRaycastHits(spawnPosition + spawnPositionEvaluationOffset, targetPositions);
 
 				// if a perfect score is achieved, return this position
 				if (score == targets.Count)
+				{
+					GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
 					return spawnPosition;
+				}
 
 				// if the score is not perfect, but better than bestScore, record it
 				else if (score > bestScore)
@@ -544,6 +546,7 @@ namespace GFPS
 				}
 			}
 
+			GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
 			return bestSpawnPos;
 		}
 		#endregion
