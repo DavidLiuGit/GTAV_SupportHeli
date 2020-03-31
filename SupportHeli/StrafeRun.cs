@@ -182,7 +182,8 @@ namespace GFPS
 			initialTargetList = targetQ.ToList();
 
 			// spawn a strafing vehicle formation
-			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, (targetQ.Count+2) / vehiclesPerInitialTarget);
+			int numVehicles = (targetQ.Count+2) / vehiclesPerInitialTarget;
+			strafeVehiclesList = spawnStrafeVehiclesInFormation(targetPos, initialTargetList, numVehicles);
 			taskAllPilotsEngage(targetQ, true);		// if no targets, fire at targetPos
 
 			// mark the target position with flare ptfx
@@ -246,7 +247,7 @@ namespace GFPS
 		/// <param name="targetPos">Current target position</param>
 		/// <param name="N">Number of vehicles in the formation</param>
 		/// <returns>Collection of strafing vehicles in the formation</returns>
-		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, int N)
+		protected List<Vehicle> spawnStrafeVehiclesInFormation(Vector3 targetPos, List<Ped> initialTargetList, int N)
 		{
 			// impose lower & upper limits on N. 1 < N < # vehicles in formation definition
 			if (N > formationOffsets.Length) N = formationOffsets.Length;
@@ -254,7 +255,7 @@ namespace GFPS
 			List<Vehicle> strafeVehicles = new List<Vehicle>(N);
 
 			// compute the formation anchor's position, and initial orientation
-			Vector3 formationAnchorPos = getValidSpawnPosition(targetPos, 20);
+			Vector3 formationAnchorPos = getBestValidSpawnPosition(targetPos, initialTargetList, 10, 20);
 			Vector3 initialEulerAngle = Helper.getEulerAngles((targetPos - formationAnchorPos).Normalized);
 			initialEulerAngle.X = 0f;				// reduce initial pitch 
 			initialEulerAngle.Z += 15.0f;			// offset initial yaw by 30 degrees (clockwise)
@@ -500,6 +501,50 @@ namespace GFPS
 			}
 
 			return Helper.getOffsetVector3(_height, _radius) + targetPos;
+		}
+
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="targetPos">Target position; origin of target search</param>
+		/// <param name="targets">List of targets</param>
+		/// <param name="numSpawns">Number of valid spawn positions to evaluate</param>
+		/// <param name="maxTrials"></param>
+		/// <returns></returns>
+		protected Vector3 getBestValidSpawnPosition(Vector3 targetPos, List<Ped> targets, int numSpawns = 5, int maxTrials = 5)
+		{
+			Vector3 bestSpawnPos = Vector3.Zero;
+			int bestScore = -1, score;
+
+			// extract positions of targets
+			List<Vector3> targetPositions = targets.Select<Ped, Vector3>(target => target.Position).ToList();
+			List<Vector3> validSpawnPostions = new List<Vector3>(numSpawns);
+
+			// build a list of valid spawn positions
+			for (int i = 0; i < numSpawns; i++)
+				validSpawnPostions.Add(getValidSpawnPosition(targetPos, maxTrials));
+
+			// evaluate each valid spawn position
+			foreach (Vector3 spawnPosition in validSpawnPostions)
+			{
+				// compute the score for this spawn position
+				score = Helper.evaluateRaycastHits(spawnPosition + spawnPositionEvaluationOffset, targetPositions);
+
+				// if a perfect score is achieved, return this position
+				if (score == targets.Count)
+					return spawnPosition;
+
+				// if the score is not perfect, but better than bestScore, record it
+				else if (score > bestScore)
+				{
+					bestSpawnPos = spawnPosition;
+					bestScore = score;
+				}
+			}
+
+			return bestSpawnPos;
 		}
 		#endregion
 	}
