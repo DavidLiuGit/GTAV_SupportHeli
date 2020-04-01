@@ -77,6 +77,9 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.0.4 (beta)
+- improve strafe run spawn position choosing logic
+- randomized strafe run pilot tasking order for better targeting distribution
 #### 3.0.3 (beta)
 - tweaked default values in INI file
 - implemented various attempts to fix user crashes
