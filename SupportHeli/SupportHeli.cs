@@ -293,7 +293,8 @@ namespace GFPS
 				return;
 
 			// give player flare gun and ammo
-			Weapon flareGun = Game.Player.Character.Weapons.Give(WeaponHash.FlareGun, 1, true, true);
+			Weapon flareGun = Game.Player.Character.Weapons.Give(WeaponHash.FlareGun, 0, true, true);
+			flareGun.Ammo += 1;
 			flareGun.AmmoInClip = 1;
 
 			// set the flag as active

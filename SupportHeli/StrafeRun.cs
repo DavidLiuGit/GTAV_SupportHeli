@@ -535,7 +535,7 @@ namespace GFPS
 				// if a perfect score is achieved, return this position
 				if (score == targets.Count)
 				{
-					GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
+					//GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
 					return spawnPosition;
 				}
 
@@ -547,7 +547,7 @@ namespace GFPS
 				}
 			}
 
-			GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
+			//GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
 			return bestSpawnPos;
 		}
 		#endregion
