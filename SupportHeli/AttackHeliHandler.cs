@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using GTA;
 using GTA.Math;
-//using GTA.Native;
+using GTA.Native;
 
 
 namespace GFPS
@@ -218,6 +218,9 @@ namespace GFPS
 
 			// task the pilot with chasing the target
 			pilot.Task.ChaseWithHelicopter(currTarget, Helper.getOffsetVector3(_height, _radius));
+			//Function.Call(Hash.TASK_HELI_MISSION, pilot, heli, 0, currTarget, 0f, 0f, 0f, 6, 
+			//	200f, 5f, (currTarget.Position - heli.Position).ToHeading(), -1, -1, -1, 0);
+			//pilot.Task.FightAgainst(currTarget);
 			
 			// task the passenger(s) with fighting the target
 			foreach (Ped passenger in heli.Passengers)
