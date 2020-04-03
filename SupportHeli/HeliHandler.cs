@@ -343,8 +343,15 @@ namespace GFPS
 		/// <returns>Instance of <c>Vehicle</c></returns>
 		protected Vehicle spawnHeli(Vector3 offset)
 		{
-			// spawn in heli and apply settings
+			// spawn in heli
 			Vehicle heli = World.CreateVehicle((Model)((int)_model), _leader.Position + offset);
+
+			// verify that the vehicle was successfully spawned
+			if (heli == null) 
+				GTA.UI.Notification.Show("~r~Failed to spawn the vehicle." + 
+				"Check that you have the required DLC, and you spelled the vehicle name correctly in INI.");
+
+			// apply settings to heli
 			heli.IsEngineRunning = true;
 			heli.HeliBladesSpeed = 1.0f;
 			heli.LandingGearState = VehicleLandingGearState.Retracted;

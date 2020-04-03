@@ -9,6 +9,12 @@ A GTA5 mod that that enables the player to call in air support, in the form of P
 * Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
 * Make sure you have installed [.NET 4.8 Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 
+### DLC requirements
+* After Hours DLC is required to use Strikeforce (strafe run)
+* Doomsday DLC is required to use Akula
+* Heists DLC is required to use Valkyrie
+* Smuggler's Run DLC is required to use Hunter
+
 ---
 ## Precision Air Strike (Strafe Run) - BETA
 A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
@@ -77,6 +83,13 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.0.5 (beta)
+- added error checking to prevent the script from crashing when user doesn't have necessary DLC
+  - add DLC requirements to readme
+- fixed (hopefully) issue with flare gun not getting ammo while player is in a vehicle
+#### 3.0.4 (beta)
+- improve strafe run spawn position choosing logic
+- randomized strafe run pilot tasking order for better targeting distribution
 #### 3.0.3 (beta)
 - tweaked default values in INI file
 - implemented various attempts to fix user crashes

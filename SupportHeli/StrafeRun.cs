@@ -173,11 +173,7 @@ namespace GFPS
 
 			// sanity check the target position
 			if (targetPos == Vector3.Zero) return;
-
-			// otherwise, spawn the strafe run
-			_isActive = true;
-			_spawnTime = Game.GameTime;
-			_targetPos = targetPos;
+			else _targetPos = targetPos;
 
 			// acquire initial targets
 			SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius, true);
@@ -197,6 +193,10 @@ namespace GFPS
 				cinematicCam = initCinematicCam(strafeVehiclesList[strafeVehiclesList.Count - 1]);
 				World.RenderingCamera = cinematicCam;
 			}
+
+			// if all has succeeded, flag it as such
+			_isActive = true;
+			_spawnTime = Game.GameTime;
 		}
 
 
@@ -289,6 +289,10 @@ namespace GFPS
 
 			// spawn strafe run vehicle
 			Vehicle veh = World.CreateVehicle(strafeVehicleModel, spawnPos);
+
+			// verify that the vehicle was successfully spawned
+			if (veh == null) 
+				Notification.Show("~r~Failed to spawn the vehicle. Check that you have the required DLC.");
 			
 			// orient the vehicle towards the target
 			veh.Rotation = spawnRotation;
@@ -535,7 +539,7 @@ namespace GFPS
 				// if a perfect score is achieved, return this position
 				if (score == targets.Count)
 				{
-					GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
+					//GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
 					return spawnPosition;
 				}
 
@@ -547,7 +551,7 @@ namespace GFPS
 				}
 			}
 
-			GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
+			//GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
 			return bestSpawnPos;
 		}
 		#endregion

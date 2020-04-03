@@ -35,6 +35,13 @@
 <li>Make sure you have <a href="https://www.gta5-mods.com/tools/scripthookv-net">ScriptHookVDotNet v3.x</a></li>
 <li>Make sure you have installed <a href="https://dotnet.microsoft.com/download/dotnet-framework/net48">.NET 4.8 Runtime</a></li>
 </ul>
+<h3 id="dlc-requirements">DLC requirements</h3>
+<ul>
+<li>After Hours DLC is required to use Strikeforce (strafe run)</li>
+<li>Doomsday DLC is required to use Akula</li>
+<li>Heists DLC is required to use Valkyrie</li>
+<li>Smuggler's Run DLC is required to use Hunter</li>
+</ul>
 <hr>
 <h2 id="precision-air-strike-strafe-run---beta">Precision Air Strike (Strafe Run) - BETA</h2>
 <p>A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.</p>
@@ -102,6 +109,20 @@
 <h2 id="development">Development</h2>
 <p>If you have feedback or questions, I want to hear them. You can leave a comment on the <a href="https://www.gta5-mods.com/scripts/support-helicopter">gta5-mods.com</a> page, or as an issue on the <a href="https://github.com/DavidLiuGit/GTAV_SupportHeli">GitHub repo</a>. I also welcome contributions to the code - just open a pull request.</p>
 <h3 id="changelog">Changelog</h3>
+<h4 id="305-beta">3.0.5 (beta)</h4>
+<ul>
+<li>added error checking to prevent the script from crashing when user doesn't have necessary DLC
+<ul>
+<li>add DLC requirements to readme</li>
+</ul>
+</li>
+<li>fixed (hopefully) issue with flare gun not getting ammo while player is in a vehicle</li>
+</ul>
+<h4 id="304-beta">3.0.4 (beta)</h4>
+<ul>
+<li>improve strafe run spawn position choosing logic</li>
+<li>randomized strafe run pilot tasking order for better targeting distribution</li>
+</ul>
 <h4 id="303-beta">3.0.3 (beta)</h4>
 <ul>
 <li>tweaked default values in INI file</li>
