@@ -92,7 +92,7 @@ namespace GFPS
 		/// Given a normalized direction Vector3, return a set of Euler angles, describing Rot[ZXY] (i.e. pitch, roll, yaw).
 		/// All angles are in degrees. Roll will be set to 0.0
 		/// </summary>
-		/// <returns><c>Vector3</c> whose x, y, z angles represent pitch, roll, and yaw angles respectively. Angles are in degrees.</returns>
+		/// <returns><c>Vector3</c> whose x, y, z angles represent pitch, roll, and yaw angles respectively.</returns>
 		public static Vector3 getEulerAngles(Vector3 normDirectionVector)
 		{
 			// calculate angles
@@ -165,6 +165,21 @@ namespace GFPS
 
 			// return the number of rays that successfully reached their target
 			return targetList.Count - collisionCount;
+		}
+		#endregion
+
+
+
+
+		#region camera
+		/// <summary>
+		/// Create a custom camera that imitates the Gameplay Camera
+		/// </summary>
+		/// <returns></returns>
+		public static Camera duplicateGameplayCam()
+		{
+			Camera cam = World.CreateCamera(GameplayCamera.Position, GameplayCamera.Rotation, GameplayCamera.FieldOfView);
+			return cam;
 		}
 		#endregion
 	}
