@@ -58,6 +58,7 @@ namespace GFPS
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
+		protected Camera duplicateGameplayCam;
 		protected Camera cinematicCam;
 		protected RelationshipGroup relGroup;
 		protected List<Ped> initialTargetList;
@@ -147,7 +148,7 @@ namespace GFPS
 				{
 					Game.Player.Character.IsInvincible = _playerInvincibilityState;
 					World.RenderingCamera = null;
-					cinematicCam.Delete();
+					World.DestroyAllCameras();
 				}
 			}
 			catch { }
@@ -191,7 +192,9 @@ namespace GFPS
 			if (_cinematic)
 			{
 				cinematicCam = initCinematicCam(strafeVehiclesList[strafeVehiclesList.Count - 1]);
-				World.RenderingCamera = cinematicCam;
+				duplicateGameplayCam = Helper.duplicateGameplayCam();
+				World.RenderingCamera = duplicateGameplayCam;
+				duplicateGameplayCam.InterpTo(cinematicCam, 1250, 25, 30);
 			}
 
 			// if all has succeeded, flag it as such
