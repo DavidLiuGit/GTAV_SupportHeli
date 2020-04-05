@@ -116,18 +116,19 @@ namespace GFPS
 
 		#region sequences
 		private StrafeRunCinematicCam[][] _sequences = {
-			// seq0: follow strafeVeh to the end
+			// strafeVeh fly-by, then follow
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
 			},
 
-			// seq1: look at strike target from player's perspective
+			// look at strike target from player's perspective
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 500, 25, 25)),
 				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 2200, 25, 25)),
 			},
 
-			// seq2: strafeVeh fly-by; strike target look at strafeVeh
+			// strafeVeh fly-by; strike target look at strafeVeh
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
@@ -135,9 +136,9 @@ namespace GFPS
 
 			// player look at strafeVeh, then follow strafeVeh
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2000, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2000, 500, 25, 25)),
 				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
-			}
+			},
 		};
 		#endregion
 
