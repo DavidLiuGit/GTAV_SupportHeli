@@ -70,7 +70,9 @@ namespace GFPS
 			_activeSrps = srps;
 
 			// randomly select a sequence from available sequences
-			StrafeRunCinematicCam[] selectedSequence = _sequences[rng.Next(0, _sequences.Length)];
+			int randIdx = rng.Next(0, _sequences.Length);
+			StrafeRunCinematicCam[] selectedSequence = _sequences[randIdx];
+			//GTA.UI.Notification.Show("activating cine cam sequence " + randIdx);
 			_activeSequence = new Queue<SRCC>(selectedSequence);
 
 			// initialize an duplicated GameplayCamera, and render from it
@@ -114,14 +116,27 @@ namespace GFPS
 
 		#region sequences
 		private StrafeRunCinematicCam[][] _sequences = {
-			// seq0: follow strafe vehicle to the end
+			// seq0: follow strafeVeh to the end
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.followStrafeVehicle, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
 			},
 
 			// seq1: look at strike target from player's perspective
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.playerLookAtTarget, new SRCC_CT(int.MaxValue, 500, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 2200, 25, 25)),
+			},
+
+			// seq2: strafeVeh fly-by; strike target look at strafeVeh
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+			},
+
+			// player look at strafeVeh, then follow strafeVeh
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2000, 1250, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
 			}
 		};
 		#endregion
@@ -151,7 +166,7 @@ namespace GFPS
 				// destroy the previously active camera, and update _activeCam to nextCam
 				_activeCam = nextCam;
 			}
-			catch (InvalidOperationException e)
+			catch (InvalidOperationException)
 			{
 				// if any exception are throw during the activation process, hard destroy
 				GTA.UI.Notification.Show("~r~Error: No more cameras in the sequence.");
@@ -205,10 +220,11 @@ namespace GFPS
 
 		#region cinematicCamType
 		public enum cinematicCamType {
-			followStrafeVehicle,
-			playerLookAtTarget,
-			playerLookAtStrafeVehicle,
-			targetLookAtStrafeVehicle
+			FollowStrafeVeh,
+			PlayerLookAtTarget,
+			PlayerLookAtStrafeVeh,
+			TargetLookAtStrafeVeh,
+			StrafeVehFlyBy,
 		}
 		public cinematicCamType _type;
 		#endregion
@@ -229,23 +245,69 @@ namespace GFPS
 
 
 		#region camConstructors
-
+		/// <summary>
+		/// Create and return a camera created based on Strafe Run properties and predefined settings.
+		/// </summary>
+		/// <param name="srps">Instance of <c>StrafeRun.StrafeRunPropertiesSummary</c></param>
+		/// <returns><c>Camera</c> that can be activated</returns>
 		public Camera createCamera(StrafeRun.StrafeRunPropertiesSummary srps)
 		{
 			switch (_type)
 			{
+				case cinematicCamType.PlayerLookAtStrafeVeh:
+					return createPlayerLookAtStrafeVehCam(srps.vehicles[0]);
+
+				case cinematicCamType.TargetLookAtStrafeVeh:
+					return createTargetLookAtStrafeVehCam(srps.targetPos, srps.vehicles[0]);
+
+				case cinematicCamType.StrafeVehFlyBy:
+					return createStrafeVehFlyByCam(srps.vehicles[0]);
+
+				case cinematicCamType.PlayerLookAtTarget:
+					return createPlayerLookAtTargetCam(srps.targetPos);
+
 				default:
-				case cinematicCamType.followStrafeVehicle:
+				case cinematicCamType.FollowStrafeVeh:
 					return createFollowStrafeVehicleCam(srps.vehicles[0], srps.targetPos);
 			}
 		}
 
 
+		private Camera createPlayerLookAtStrafeVehCam(Vehicle veh)
+		{
+			Camera cam = Helper.duplicateGameplayCam();
+			cam.FieldOfView = 20f;
+			cam.PointAt(veh);
+			return cam;
+		}
+
+		private Camera createTargetLookAtStrafeVehCam(Vector3 targetPos, Vehicle veh)
+		{
+			Camera cam = World.CreateCamera(targetPos, Vector3.Zero, 70f);
+			cam.PointAt(veh);
+			return cam;
+		}
+
+		private Camera createStrafeVehFlyByCam(Vehicle veh)
+		{
+			Vector3 camPos = Helper.getVector3NearTarget(30f, veh.Position + veh.ForwardVector * 100);
+			Camera cam = World.CreateCamera(camPos, Vector3.Zero, 45f);
+			cam.PointAt(veh);
+			return cam;
+		}
 
 		private Camera createFollowStrafeVehicleCam(Vehicle veh, Vector3 targetPos)
 		{
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, 30f);
 			cam.AttachTo(veh, new Vector3(1.5f, -30f, 5f));
+			cam.PointAt(targetPos);
+			return cam;
+		}
+
+		private Camera createPlayerLookAtTargetCam(Vector3 targetPos)
+		{
+			Camera cam = Helper.duplicateGameplayCam();
+			cam.FieldOfView = 30f;
 			cam.PointAt(targetPos);
 			return cam;
 		}
