@@ -83,7 +83,11 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
-#### 3.0.5 (beta)
+#### 3.1
+- revamped strafe run cinematic cams, now featuring 4 sequences
+#### 3.0.6 (beta)
+- smoothed the transition from gameplay camera to cinematic cam
+#### 3.0.5 (unreleased)
 - added error checking to prevent the script from crashing when user doesn't have necessary DLC
   - add DLC requirements to readme
 - fixed (hopefully) issue with flare gun not getting ammo while player is in a vehicle
