@@ -58,19 +58,19 @@ namespace GFPS
 		#region publicMethods
 		public void initializeCinematicCamSequence(StrafeRun.StrafeRunPropertiesSummary srps)
 		{
+			_activeSrps = srps;
+
 			// randomly select a sequence from available sequences
 			StrafeRunCinematicCam[] selectedSequence = _sequences[rng.Next(0, _sequences.Length)];
 			_activeSequence = new Queue<SRCC>(selectedSequence);
-			_isActive = true;
 
 			// initialize an duplicated GameplayCamera, and render from it
 			Camera gpCam = Helper.duplicateGameplayCam();
 			World.RenderingCamera = gpCam;
+			_activeCam = gpCam;
 
-			// mark the next cam in the sequence as active, and interpolate to it
-			_activeSrcc = _activeSequence.Dequeue();
-			_activeCam = _activeSrcc.createCamera(srps);
-			_activationTime = Game.GameTime;
+			// activate the 1st cam in selectedSequence and interp to it
+			activateAndInterpToNextCam();
 		}
 
 
@@ -78,17 +78,16 @@ namespace GFPS
 		/// <summary>
 		/// Call this method on each tick to control the active StrafeRun
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>Whether any StrafeRunCinematicCam is still active</returns>
 		public bool onTick()
 		{
-			try {
-				StrafeRunCinematicCam nextCam = _activeSequence.Peek();
-				return true;
-			}
-			catch
+			// check if it's time to activate the next cam in the sequence
+			if (Game.GameTime - _activationTime > _activeSrcc.transition._camDuration)
 			{
-				return false;
+				activateAndInterpToNextCam();
 			}
+
+			return _isActive;
 		}
 		#endregion
 
@@ -106,6 +105,48 @@ namespace GFPS
 				new SRCC(SRCC_CCT.playerLookAtTarget, new SRCC_CT(int.MaxValue, 500, 25, 25)),
 			}
 		};
+		#endregion
+
+
+
+
+		#region helperMethods
+		/// <summary>
+		/// Activate the next StrafeRunCinematicCam in _activeSequence queue, and interpolate from
+		/// the currently active camera to the next camera.
+		/// </summary>
+		private void activateAndInterpToNextCam(){
+			try {
+				// activate the next camera in the queue
+				_activeSrcc = _activeSequence.Dequeue();
+				Camera nextCam = _activeSrcc.createCamera(_activeSrps);
+
+				// interpolate from the currently active cam to nextCam
+				_activeCam.InterpTo(nextCam, _activeSrcc.transition._transDuration,
+					_activeSrcc.transition._easePosition, _activeSrcc.transition._easeRotation);
+
+				// update properties
+				_isActive = true;
+				_activationTime = Game.GameTime;
+				
+				// destroy the previously active camera, and update _activeCam to nextCam
+				_activeCam.Delete();
+				_activeCam = nextCam;
+			}
+			catch (InvalidOperationException e)
+			{
+				// if any exception are throw during the activation process, hard destroy
+				GTA.UI.Notification.Show("~r~Error: No more cameras in the sequence.");
+				_activationTime = int.MaxValue;		// make sure this method is not triggered by timing logic again
+			}
+			catch (Exception e)
+			{
+				GTA.UI.Notification.Show("~r~Error: something went wrong while activating next cam. Aborting.");
+				GTA.UI.Notification.Show(e.Message);
+				destructor();
+			}
+
+		}
 		#endregion
 	}
 
@@ -140,7 +181,7 @@ namespace GFPS
 				_easeRotation = easeRot;
 			}
 		}
-		public CameraTransition transitionTo;
+		public CameraTransition transition;
 		#endregion
 
 
@@ -164,7 +205,7 @@ namespace GFPS
 		{
 			// store settings
 			_type = type;
-			transitionTo = camTransitionTo;
+			transition = camTransitionTo;
 		}
 
 
