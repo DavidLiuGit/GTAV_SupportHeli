@@ -22,23 +22,27 @@ namespace GFPS
 		private Random rng = new Random();
 
 		// camera properties
-		private bool _isActive;
+		private bool _isActive = false;
 		private Queue<StrafeRunCinematicCam> _activeSequence;
 		private StrafeRunCinematicCam _activeSrcc;
 		private Camera _activeCam;
-		private int _activationTime;
+		private int _activationTime = int.MaxValue;
 
 		// active strafe run properties
 		private StrafeRun.StrafeRunPropertiesSummary _activeSrps;
+
+		// player settings
+		private bool _invincibleWhileActive;
+		private bool _initialInvincibilityState;
 		#endregion
 
 
 
 
 		#region constructorDestructor
-		public StrafeRunCinematicCamController()
+		public StrafeRunCinematicCamController(bool invincible = true)
 		{
-
+			_invincibleWhileActive = invincible;
 		}
 
 
@@ -49,6 +53,11 @@ namespace GFPS
 			_activeSequence = null;
 			_activeCam = null;
 			_isActive = false;
+			_activationTime = int.MaxValue;
+
+			// reset player invincibility state
+			if (_invincibleWhileActive)
+				Game.Player.IsInvincible = _initialInvincibilityState;
 		}
 		#endregion
 
@@ -71,6 +80,13 @@ namespace GFPS
 
 			// activate the 1st cam in selectedSequence and interp to it
 			activateAndInterpToNextCam();
+
+			// handle player invincibility
+			if (_invincibleWhileActive)
+			{
+				_initialInvincibilityState = Game.Player.IsInvincible;
+				Game.Player.IsInvincible = true;
+			}
 		}
 
 
@@ -81,6 +97,9 @@ namespace GFPS
 		/// <returns>Whether any StrafeRunCinematicCam is still active</returns>
 		public bool onTick()
 		{
+			// if not currently active, return false
+			if (!_isActive) return false;
+
 			// check if it's time to activate the next cam in the sequence
 			if (Game.GameTime - _activationTime > _activeSrcc.transition._camDuration)
 			{
@@ -130,7 +149,6 @@ namespace GFPS
 				_activationTime = Game.GameTime;
 				
 				// destroy the previously active camera, and update _activeCam to nextCam
-				_activeCam.Delete();
 				_activeCam = nextCam;
 			}
 			catch (InvalidOperationException e)
