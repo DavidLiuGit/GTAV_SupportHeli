@@ -14,7 +14,7 @@ using Priority_Queue;
 
 namespace GFPS
 {
-	class StrafeRun
+	public class StrafeRun
 	{
 		#region properties
 		// settings
@@ -65,6 +65,22 @@ namespace GFPS
 		protected ParticleEffect targetMarkerPtfx;
 		protected ParticleEffectAsset targetMarkerPtfxAsset = new ParticleEffectAsset("core");
 		protected Random rng = new Random();
+		#endregion
+
+
+		#region propertiesSummary
+		public struct StrafeRunPropertiesSummary
+		{
+			public List<Vehicle> vehicles;
+			public List<Ped> targets;
+			public Vector3 targetPos;
+			public StrafeRunPropertiesSummary(List<Vehicle> _vehicles, List<Ped> _targets, Vector3 _targetPos)
+			{
+				vehicles = _vehicles;
+				targets = _targets;
+				targetPos = _targetPos;
+			}
+		}
 		#endregion
 
 
@@ -541,10 +557,7 @@ namespace GFPS
 
 				// if a perfect score is achieved, return this position
 				if (score == targets.Count)
-				{
-					//GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
 					return spawnPosition;
-				}
 
 				// if the score is not perfect, but better than bestScore, record it
 				else if (score > bestScore)
@@ -554,7 +567,6 @@ namespace GFPS
 				}
 			}
 
-			//GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
 			return bestSpawnPos;
 		}
 		#endregion
