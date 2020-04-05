@@ -14,7 +14,7 @@ using Priority_Queue;
 
 namespace GFPS
 {
-	class StrafeRun
+	public class StrafeRun
 	{
 		#region properties
 		// settings
@@ -65,6 +65,23 @@ namespace GFPS
 		protected ParticleEffect targetMarkerPtfx;
 		protected ParticleEffectAsset targetMarkerPtfxAsset = new ParticleEffectAsset("core");
 		protected Random rng = new Random();
+		protected StrafeRunCinematicCamController cineCamCtrler;
+		#endregion
+
+
+		#region propertiesSummary
+		public struct StrafeRunPropertiesSummary
+		{
+			public List<Vehicle> vehicles;
+			public List<Ped> targets;
+			public Vector3 targetPos;
+			public StrafeRunPropertiesSummary(List<Vehicle> _vehicles, List<Ped> _targets, Vector3 _targetPos)
+			{
+				vehicles = _vehicles;
+				targets = _targets;
+				targetPos = _targetPos;
+			}
+		}
 		#endregion
 
 
@@ -90,6 +107,7 @@ namespace GFPS
 			// other preparations
 			relGroup = Game.Player.Character.RelationshipGroup;
 			targetMarkerPtfxAsset.Request();
+			cineCamCtrler = new StrafeRunCinematicCamController();
 		}
 
 
@@ -145,11 +163,7 @@ namespace GFPS
 			try
 			{
 				if (_cinematic)
-				{
-					Game.Player.Character.IsInvincible = _playerInvincibilityState;
-					World.RenderingCamera = null;
-					World.DestroyAllCameras();
-				}
+					cineCamCtrler.destructor();
 			}
 			catch { }
 
@@ -190,12 +204,8 @@ namespace GFPS
 
 			// render from cinematic cam if requested
 			if (_cinematic)
-			{
-				cinematicCam = initCinematicCam(strafeVehiclesList[strafeVehiclesList.Count - 1]);
-				duplicateGameplayCam = Helper.duplicateGameplayCam();
-				World.RenderingCamera = duplicateGameplayCam;
-				duplicateGameplayCam.InterpTo(cinematicCam, 1250, 25, 30);
-			}
+				cineCamCtrler.initializeCinematicCamSequence(
+					new StrafeRunPropertiesSummary(strafeVehiclesList, initialTargetList, _targetPos));
 
 			// if all has succeeded, flag it as such
 			_isActive = true;
@@ -215,14 +225,14 @@ namespace GFPS
 			// if active, check if timed out;
 			if (Game.GameTime - _spawnTime > _timeout)
 			{
-				//Notification.Show("Strafe run timed out; dismissing");
+				Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
 				return;
 			}
 
 			// compute the last vehicle's distance to the target
 			float currDistance = strafeVehiclesList[strafeVehiclesList.Count - 1].Position.DistanceTo2D(_targetPos);
-			if (currDistance > _lastDistance)
+			if (currDistance >= _lastDistance)
 			{
 				Notification.Show("Strafe run complete. " + getKillCount(initialTargetList) + 
 					" of " + initialTargetList.Count + " initial targets KIA.");
@@ -239,6 +249,10 @@ namespace GFPS
 				SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius);
 				taskAllPilotsEngage(targetQ);
 			}
+
+			// invoke onTick of StrafeRunCinematicCamController
+			if (_cinematic)
+				cineCamCtrler.onTick();
 		}
 		#endregion
 
@@ -457,6 +471,8 @@ namespace GFPS
 		/// </summary>
 		/// <param name="strafingVeh">Camera will be attached to this strafing vehicle</param>
 		/// <returns></returns>
+		/// 
+		/*
 		protected Camera initCinematicCam(Vehicle strafingVeh)
 		{
 			// store whether the player is invincible before activation of cinematic cam; then make player invincible
@@ -470,7 +486,7 @@ namespace GFPS
 			
 			return cam;
 		}
-
+		*/
 
 
 		/// <summary>
@@ -541,10 +557,7 @@ namespace GFPS
 
 				// if a perfect score is achieved, return this position
 				if (score == targets.Count)
-				{
-					//GTA.UI.Notification.Show("Spawn position with perfect score found. Returning.");
 					return spawnPosition;
-				}
 
 				// if the score is not perfect, but better than bestScore, record it
 				else if (score > bestScore)
@@ -554,7 +567,6 @@ namespace GFPS
 				}
 			}
 
-			//GTA.UI.Notification.Show("Spawn position score: " + bestScore + "/" + targets.Count);
 			return bestSpawnPos;
 		}
 		#endregion
