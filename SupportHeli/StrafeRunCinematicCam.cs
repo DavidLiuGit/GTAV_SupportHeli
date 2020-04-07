@@ -70,7 +70,7 @@ namespace GFPS
 			_activeSrps = srps;
 
 			// randomly select a sequence from available sequences
-			int randIdx = 5;// rng.Next(0, _sequences.Length);
+			int randIdx = rng.Next(0, _sequences.Length);
 			StrafeRunCinematicCam[] selectedSequence = _sequences[randIdx];
 			_activeSequence = new Queue<SRCC>(selectedSequence);
 
