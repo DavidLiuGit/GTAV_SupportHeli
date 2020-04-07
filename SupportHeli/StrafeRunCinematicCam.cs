@@ -72,7 +72,6 @@ namespace GFPS
 			// randomly select a sequence from available sequences
 			int randIdx = rng.Next(0, _sequences.Length);
 			StrafeRunCinematicCam[] selectedSequence = _sequences[randIdx];
-			//GTA.UI.Notification.Show("activating cine cam sequence " + randIdx);
 			_activeSequence = new Queue<SRCC>(selectedSequence);
 
 			// initialize an duplicated GameplayCamera, and render from it
@@ -116,7 +115,7 @@ namespace GFPS
 
 		#region sequences
 		private StrafeRunCinematicCam[][] _sequences = {
-			// strafeVeh fly-by, then follow
+			// strafeVeh fly-by, then strafeVeh follow
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
@@ -138,6 +137,19 @@ namespace GFPS
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2000, 500, 25, 25)),
 				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 1250, 25, 25)),
+			},
+
+			// strafeVeh fly-by, 1st person cockpit, then player look at target
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFirstPerson, new SRCC_CT(5000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+			},
+
+			// strafeVeh 45, then strafeVeh follow
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.StrafeVeh45offset, new SRCC_CT(1000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
 			},
 		};
 		#endregion
@@ -226,6 +238,8 @@ namespace GFPS
 			PlayerLookAtStrafeVeh,
 			TargetLookAtStrafeVeh,
 			StrafeVehFlyBy,
+			StrafeVehFirstPerson,
+			StrafeVeh45offset,			// look at strafe veh from 45 degrees CW offset
 		}
 		public cinematicCamType _type;
 		#endregion
@@ -255,6 +269,12 @@ namespace GFPS
 		{
 			switch (_type)
 			{
+				case cinematicCamType.StrafeVeh45offset:
+					return createStrafeVeh45offsetCam(srps.vehicles[0]);
+
+				case cinematicCamType.StrafeVehFirstPerson:
+					return createStrafeVehFirstPersonCam(srps.vehicles[0], srps.targetPos);
+
 				case cinematicCamType.PlayerLookAtStrafeVeh:
 					return createPlayerLookAtStrafeVehCam(srps.vehicles[0]);
 
@@ -273,6 +293,22 @@ namespace GFPS
 			}
 		}
 
+
+		private Camera createStrafeVeh45offsetCam(Vehicle veh)
+		{
+			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, 40f);
+			cam.AttachTo(veh, new Vector3(20f, 20f, 0f));
+			cam.PointAt(veh);
+			return cam;
+		}
+
+		private Camera createStrafeVehFirstPersonCam(Vehicle veh, Vector3 targetPos)
+		{
+			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, 60f);
+			cam.AttachTo(veh.Driver, new Vector3(0f, 0.15f, 0.75f));
+			cam.PointAt(targetPos);
+			return cam;
+		}
 
 		private Camera createPlayerLookAtStrafeVehCam(Vehicle veh)
 		{
