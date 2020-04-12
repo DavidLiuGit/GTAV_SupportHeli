@@ -467,29 +467,6 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Initialize the cinematic camera for the strafe run.
-		/// </summary>
-		/// <param name="strafingVeh">Camera will be attached to this strafing vehicle</param>
-		/// <returns></returns>
-		/// 
-		/*
-		protected Camera initCinematicCam(Vehicle strafingVeh)
-		{
-			// store whether the player is invincible before activation of cinematic cam; then make player invincible
-			_playerInvincibilityState = Game.Player.IsInvincible;		// restored when the cinematic cam is destroyed
-			Game.Player.IsInvincible = true;
-
-			// create and manipulate the cinematic cam
-			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, cinematicCamFov);
-			cam.AttachTo(strafingVeh, cinematicCameraOffset);
-			cam.PointAt(_targetPos);
-			
-			return cam;
-		}
-		*/
-
-
-		/// <summary>
 		/// Determine how many Peds in a List are deceased.
 		/// </summary>
 		/// <param name="initialTargets"><c>List</c> of Peds</param>
