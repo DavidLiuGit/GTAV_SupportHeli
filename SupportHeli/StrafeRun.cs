@@ -307,6 +307,10 @@ namespace GFPS
 			// spawn strafe run vehicle
 			Vehicle veh = World.CreateVehicle(strafeVehicleModel, spawnPos);
 
+			// HOTFIX: per MarcoKJ's report, Strikeforce hash may be 192258
+			if (veh == null)
+				veh = World.CreateVehicle((Model)192258, spawnPos);
+
 			// verify that the vehicle was successfully spawned
 			if (veh == null) 
 				Notification.Show("~r~Failed to spawn the vehicle. Check that you have the required DLC.");
