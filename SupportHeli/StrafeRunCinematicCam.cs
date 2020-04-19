@@ -34,6 +34,8 @@ namespace GFPS
 		// player settings
 		private bool _invincibleWhileActive;
 		private bool _initialInvincibilityState;
+		private Vehicle _initialPlayerVeh = null;
+		private bool _initialPlayerVehInvincibilityState;
 		#endregion
 
 
@@ -57,7 +59,14 @@ namespace GFPS
 
 			// reset player invincibility state
 			if (_invincibleWhileActive)
+			{
 				Game.Player.IsInvincible = _initialInvincibilityState;
+
+				// if player was in a vehicle and it still exists, restore its invincibility state
+				if (_initialPlayerVeh != null && _initialPlayerVeh.Exists())
+					_initialPlayerVeh.IsInvincible = _initialPlayerVehInvincibilityState;
+				_initialPlayerVeh = null;
+			}
 		}
 		#endregion
 
@@ -85,8 +94,18 @@ namespace GFPS
 			// handle player invincibility
 			if (_invincibleWhileActive)
 			{
+				// remember player's current invincibility state, then set player to invincible
 				_initialInvincibilityState = Game.Player.IsInvincible;
 				Game.Player.IsInvincible = true;
+
+				// if player is in vehicle, remember its invincibility state, then set vehicle to 
+				if (Game.Player.Character.IsInVehicle())
+				{
+					_initialPlayerVeh = Game.Player.Character.CurrentVehicle;
+					_initialPlayerVehInvincibilityState = _initialPlayerVeh.IsInvincible;
+					_initialPlayerVeh.IsInvincible = true;
+				}
+
 			}
 		}
 
