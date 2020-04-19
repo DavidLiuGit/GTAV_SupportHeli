@@ -83,6 +83,10 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.1.3
+- implemented player vehicle invincibility while strafe run cinematic cam is active
+#### 3.1.2 (unreleased)
+- experimental: add alternate hash for Strikeforce
 #### 3.1.1
 - added 2 more cinematic cam sequences
 #### 3.1
