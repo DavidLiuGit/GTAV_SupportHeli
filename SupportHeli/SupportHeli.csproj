@@ -66,8 +66,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(Targetpath)" "E:\Games\GTAV\scripts"
-copy /Y "$(SolutionDir)\README.html" "E:\Games\GTAV\scripts\SupportHeliReadMe.html"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(Targetpath)" "H:\Games\Grand Theft Auto V\scripts"
+copy /Y "$(SolutionDir)\README.html" "H:\Games\Grand Theft Auto V\scripts\SupportHeliReadMe.html"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
