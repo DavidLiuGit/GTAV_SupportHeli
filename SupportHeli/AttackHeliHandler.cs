@@ -112,26 +112,7 @@ namespace GFPS
 		{
 			List<Ped> newCrew = new List<Ped>();
 			newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-
-			// if multi-seat heli, spawn more shooters
-			//switch (_model)
-			//{
-			//	case HeliModel.Akula:
-			//	case HeliModel.Hunter:
-			//		break;
-
-			//	case HeliModel.Valkyrie:
-			//		newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-			//		goto default;
-
-			//	case HeliModel.Buzzard:
-			//	default:
-			//		// spawn a pair of rear-door gunners
-			//		newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-			//		newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-			//		break;
-			//}
-
+			
 			return newCrew.ToArray<Ped>();
 		}
 

@@ -115,16 +115,6 @@ namespace GFPS
 			newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
 			newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
 
-			//switch (_model)
-			//{
-			//	case HeliModel.Polmav:
-			//	case HeliModel.Maverick:
-			//	default:
-			//		newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-			//		newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-			//		break;
-			//}
-
 			return newCrew.ToArray<Ped>();
 		}
 

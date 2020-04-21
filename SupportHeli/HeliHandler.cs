@@ -336,6 +336,7 @@ namespace GFPS
 			}
 		}
 
+
 		
 		/// <summary>
 		/// Spawn a helicopter at the offset relative to the player.
@@ -377,6 +378,7 @@ namespace GFPS
 
 			return heli;
 		}
+
 
 
 		/// <summary>
