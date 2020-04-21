@@ -351,6 +351,14 @@ namespace GFPS
 			// verify that the vehicle was successfully spawned
 			if (heli == null)
 			{
+				// check if the model is the same as the fallback model
+				if (model == fallbackModel)
+				{
+					GTA.UI.Notification.Show("~r~Failed the spawn default vehicle. Check that you have required DLC.");
+					return null;
+				}
+
+				// otherwise, try again with the fallback model
 				GTA.UI.Notification.Show("~r~Failed to spawn the vehicle. " +
 					"Check that you have you spelled the vehicle name correctly in INI. Falling back to default model");
 				return spawnHeli(offset, fallbackModel);
