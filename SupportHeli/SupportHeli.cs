@@ -172,7 +172,7 @@ namespace GFPS
 			// read in settings for Attack Heli
 			sec = "AttackHeli";
 			attackHeli = new Attackheli(
-				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Hunter),
+				ss.GetValue<string>(sec, "HeliModel", "Akula"),
 				ss.GetValue<float>(sec, "height", 20f),
 				ss.GetValue<float>(sec, "radius", 20f),
 				ss.GetValue<bool>(sec, "bulletproof", true)
@@ -182,7 +182,7 @@ namespace GFPS
 			// read in settings for Support Heli
 			sec = "SupportHeli";
 			supportHeli = new SupportHeli(
-				ss.GetValue<HeliModel>(sec, "HeliModel", HeliModel.Polmav),
+				ss.GetValue<string>(sec, "HeliModel", "Polmav"),
 				ss.GetValue<float>(sec, "height", 20f),
 				ss.GetValue<float>(sec, "radius", 20f),
 				ss.GetValue<bool>(sec, "bulletproof", true)
