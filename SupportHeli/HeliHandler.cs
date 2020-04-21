@@ -14,7 +14,7 @@ namespace GFPS
 	public class Heli
 	{
 		// settings
-		protected HeliModel _model;
+		protected Model _model;
 		protected float _height;
 		protected float _radius;
 		protected bool _isBulletproof;
@@ -30,6 +30,7 @@ namespace GFPS
 		protected const float warpIntoDistanceThreshold = 6f;
 		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different _height
 		protected const BlipColor defaultBlipColor = BlipColor.Green;
+		protected virtual Model fallbackModel { get { return (Model) VehicleHash.Buzzard; } }
 
 		// object references
 		protected Ped _leader;
@@ -68,9 +69,10 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public Heli(HeliModel model, float height, float radius, bool bulletproof)
+		public Heli(string model, float height, float radius, bool bulletproof)
 		{
-			_model = model;
+			//_model = model;
+			_model = Game.GenerateHash(model);
 			_height = height;
 			_radius = radius;
 			_isBulletproof = bulletproof;
@@ -133,7 +135,7 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(_height, _radius));
+				heli = spawnHeli(Helper.getOffsetVector3(_height, _radius), _model);
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				_isActive = true;
@@ -334,6 +336,7 @@ namespace GFPS
 			}
 		}
 
+
 		
 		/// <summary>
 		/// Spawn a helicopter at the offset relative to the player.
@@ -341,15 +344,26 @@ namespace GFPS
 		/// <param name="mdl">Model of the helicopter to spawn</param>
 		/// <param name="offset">offset, relative to the player, as a vector</param>
 		/// <returns>Instance of <c>Vehicle</c></returns>
-		protected Vehicle spawnHeli(Vector3 offset)
+		protected Vehicle spawnHeli(Vector3 offset, Model model)
 		{
 			// spawn in heli
-			Vehicle heli = World.CreateVehicle((Model)((int)_model), _leader.Position + offset);
+			Vehicle heli = World.CreateVehicle(model, _leader.Position + offset);
 
 			// verify that the vehicle was successfully spawned
-			if (heli == null) 
-				GTA.UI.Notification.Show("~r~Failed to spawn the vehicle." + 
-				"Check that you have the required DLC, and you spelled the vehicle name correctly in INI.");
+			if (heli == null)
+			{
+				// check if the model is the same as the fallback model
+				if (model == fallbackModel)
+				{
+					GTA.UI.Notification.Show("~r~Failed the spawn default vehicle. Check that you have required DLC.");
+					return null;
+				}
+
+				// otherwise, try again with the fallback model
+				GTA.UI.Notification.Show("~r~Failed to spawn the vehicle. " +
+					"Check that you have you spelled the vehicle name correctly in INI. Falling back to default model");
+				return spawnHeli(offset, fallbackModel);
+			}
 
 			// apply settings to heli
 			heli.IsEngineRunning = true;
@@ -364,6 +378,7 @@ namespace GFPS
 
 			return heli;
 		}
+
 
 
 		/// <summary>
@@ -480,18 +495,5 @@ namespace GFPS
 			}
 		}
 		#endregion
-	}
-
-
-	
-
-	public enum HeliModel : int
-	{
-		Akula = 0x46699F47,
-		Valkyrie = -1600252419,
-		Buzzard = 0x2F03547B,
-		Maverick = -1660661558,
-		Polmav = 353883353,
-		Hunter = -42959138,
 	}
 }

@@ -18,6 +18,7 @@ namespace GFPS
 		// defaults
 		protected WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Assault];
 		protected const HeliPilotTask defaultPilotTask = HeliPilotTask.ChaseLeader;
+		protected override Model fallbackModel { get { return (Model) VehicleHash.Hunter; } }
 
 		// references
 		Stack<Ped> targetedPedsStack = new Stack<Ped>();
@@ -34,7 +35,7 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public Attackheli(HeliModel model, float height, float radius, bool bulletproof)
+		public Attackheli(string model, float height, float radius, bool bulletproof)
 			: base(model, height, radius, bulletproof)
 		{ }
 
@@ -110,27 +111,8 @@ namespace GFPS
 		protected override Ped[] spawnCrewIntoHeli()
 		{
 			List<Ped> newCrew = new List<Ped>();
-
-			// if multi-seat heli, spawn more shooters
-			switch (_model)
-			{
-				case HeliModel.Akula:
-				case HeliModel.Hunter:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-					break;
-
-				case HeliModel.Valkyrie:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
-					goto default;
-
-				case HeliModel.Buzzard:
-				default:
-					// spawn a pair of rear-door gunners
-					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-					break;
-			}
-
+			newCrew.Add(spawnCrewGunner(VehicleSeat.Passenger, new WeaponHash[0]));
+			
 			return newCrew.ToArray<Ped>();
 		}
 

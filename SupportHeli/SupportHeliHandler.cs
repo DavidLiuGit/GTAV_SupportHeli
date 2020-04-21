@@ -14,14 +14,17 @@ namespace GFPS
 {
 	public class SupportHeli : Heli
 	{
+		#region properties
 		// by default, give each (non-copilot) crew heavy weapons
 		WeaponHash[] gunnerWeapons = CrewHandler.weaponsOfRoles[GroundCrewRole.Heavy];
 		const float blipScale = 0.7f;
 		public PedGroup leaderPedGroup;
 		protected const int maxConfigureAttempts = 5;
+		protected override Model fallbackModel { get { return (Model)VehicleHash.Polmav; } }
 
 		protected int seatIndex = 0;
 		protected VehicleSeat[] seatSelection;
+		#endregion
 
 
 
@@ -32,7 +35,7 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public SupportHeli(HeliModel model, float height, float radius, bool bulletproof)
+		public SupportHeli(string model, float height, float radius, bool bulletproof)
 			: base(model, height, radius, bulletproof)
 		{
 			// get the player's current PedGroup (or create a new one if player is not in one)
@@ -109,15 +112,8 @@ namespace GFPS
 		{
 			List<Ped> newCrew = new List<Ped>();
 
-			switch (_model)
-			{
-				case HeliModel.Polmav:
-				case HeliModel.Maverick:
-				default:
-					newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
-					newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
-					break;
-			}
+			newCrew.Add(spawnCrewGunner(VehicleSeat.LeftRear, gunnerWeapons));
+			newCrew.Add(spawnCrewGunner(VehicleSeat.RightRear, gunnerWeapons));
 
 			return newCrew.ToArray<Ped>();
 		}
