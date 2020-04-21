@@ -38,9 +38,11 @@ By default, `[activateKey]` is `F12`. This can be changed in settings. Call in a
 ## Attack Heli
 A manned heli follows the player and engages enemies. The Attack Heli can also be tasked with targeting NPCs.
 
-### Supported Models
+### Supported Models (Tested)
 * Hunter
 * Akula
+
+You may use other models, including add-on helicopters. Full functionality is not guaranteed. The helicopter must have at least 2 seats, and the passenger must be able to control a weapon.
 
 ### Usage
 By default, `[activateKey]` is `F10`. This can be changed in settings.
@@ -55,17 +57,13 @@ A manned heli that can:
 * Seats 2 door gunners
 * Can be tasked to land and fly to a waypoint (heli taxi)
 
-### Supported Models
+### Supported Models (Tested)
 The following models support rappeling:
 * Maverick
 * Polmav
+* [fibfrogger](https://www.gta5-mods.com/vehicles/fib-frogger-add-on-rde-style)
 
-It is recommended to use Polmav (Police Maverick). The following models can also be used, without rappeling support and/or door gunners:
-* Buzzard
-* Akula
-* Hunter
-* Valkyrie
-
+You may use other models, including add-on helicopters. Full functionality is not guaranteed. Rappeling will not 
 
 ### Usage
 By default, `[activateKey]` is `F10`. This can be changed in settings.
@@ -83,6 +81,8 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.1.4
+- enabled custom heli models
 #### 3.1.3
 - implemented player vehicle invincibility while strafe run cinematic cam is active
 #### 3.1.2 (unreleased)
