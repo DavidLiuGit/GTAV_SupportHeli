@@ -161,13 +161,14 @@ namespace GFPS
 			// strafeVeh fly-by, 1st person cockpit, then player look at target
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.StrafeVehFirstPerson, new SRCC_CT(5000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
 			},
 
 			// strafeVeh 45, then strafeVeh follow
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVeh45offset, new SRCC_CT(1000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
 			},
 		};
@@ -257,7 +258,7 @@ namespace GFPS
 			PlayerLookAtStrafeVeh,
 			TargetLookAtStrafeVeh,
 			StrafeVehFlyBy,
-			StrafeVehFirstPerson,
+			StrafeVehFirstPersonLookAtPos,
 			StrafeVeh45offset,			// look at strafe veh from 45 degrees CW offset
 		}
 		public cinematicCamType _type;
@@ -266,9 +267,11 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Create 
+		/// Create an instance of <c>StrafRunCinematicCam</c> - a wrapper for the in-game <c>Camera</c>.
+		/// Params given to this constructor are used as instructions when creating and using the <c>Camera</c>
+		/// in game.
 		/// </summary>
-		/// <param name="camTransitionTo"></param>
+		/// <param name="camTransitionTo">Instance of <c>CameraTransition</c> struct</param>
 		public StrafeRunCinematicCam(cinematicCamType type, CameraTransition camTransitionTo)
 		{
 			// store settings
@@ -291,7 +294,7 @@ namespace GFPS
 				case cinematicCamType.StrafeVeh45offset:
 					return createStrafeVeh45offsetCam(srps.vehicles[0]);
 
-				case cinematicCamType.StrafeVehFirstPerson:
+				case cinematicCamType.StrafeVehFirstPersonLookAtPos:
 					return createStrafeVehFirstPersonCam(srps.vehicles[0], srps.targetPos);
 
 				case cinematicCamType.PlayerLookAtStrafeVeh:
@@ -316,7 +319,7 @@ namespace GFPS
 		private Camera createStrafeVeh45offsetCam(Vehicle veh)
 		{
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, 40f);
-			cam.AttachTo(veh, new Vector3(20f, 20f, 0f));
+			cam.AttachTo(veh.Driver, new Vector3(20f, 20f, 0f));
 			cam.PointAt(veh);
 			return cam;
 		}
