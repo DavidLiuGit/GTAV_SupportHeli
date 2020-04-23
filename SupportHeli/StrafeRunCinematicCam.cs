@@ -143,7 +143,8 @@ namespace GFPS
 			// look at strike target from player's perspective
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 500, 25, 25)),
-				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 2200, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(701, 700, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
 			},
 
 			// strafeVeh fly-by; strike target look at strafeVeh
@@ -162,7 +163,8 @@ namespace GFPS
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(701, 700, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 1500, 25, 25)),
 			},
 
 			// strafeVeh 45, then strafeVeh follow
@@ -255,6 +257,7 @@ namespace GFPS
 		public enum cinematicCamType {
 			FollowStrafeVeh,
 			PlayerLookAtTarget,
+			PlayerLookAtTargetZoomed,
 			PlayerLookAtStrafeVeh,
 			TargetLookAtStrafeVeh,
 			StrafeVehFlyBy,
@@ -308,6 +311,9 @@ namespace GFPS
 
 				case cinematicCamType.PlayerLookAtTarget:
 					return createPlayerLookAtTargetCam(srps.targetPos);
+
+				case cinematicCamType.PlayerLookAtTargetZoomed:
+					return createPlayerLookAtTargetCam(srps.targetPos, 20f);
 
 				default:
 				case cinematicCamType.FollowStrafeVeh:
@@ -363,10 +369,10 @@ namespace GFPS
 			return cam;
 		}
 
-		private Camera createPlayerLookAtTargetCam(Vector3 targetPos)
+		private Camera createPlayerLookAtTargetCam(Vector3 targetPos, float fov = 65f)
 		{
 			Camera cam = Helper.duplicateGameplayCam();
-			cam.FieldOfView = 30f;
+			cam.FieldOfView = fov;
 			cam.PointAt(targetPos);
 			return cam;
 		}
