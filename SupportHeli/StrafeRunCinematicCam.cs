@@ -144,7 +144,7 @@ namespace GFPS
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 500, 25, 25)),
 				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(701, 700, 25, 25)),
-				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 5000, 25, 25)),
 			},
 
 			// strafeVeh fly-by; strike target look at strafeVeh
@@ -171,7 +171,7 @@ namespace GFPS
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVeh45offset, new SRCC_CT(1000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 2500, 25, 25)),
 			},
 		};
 		#endregion
@@ -263,6 +263,8 @@ namespace GFPS
 			StrafeVehFlyBy,
 			StrafeVehFirstPersonLookAtPos,
 			StrafeVeh45offset,			// look at strafe veh from 45 degrees CW offset
+			BirdsEyeTargetRandomAngle,
+			BirdsEyeTargetStrafeVehAngle,
 		}
 		public cinematicCamType _type;
 		#endregion
@@ -294,6 +296,12 @@ namespace GFPS
 		{
 			switch (_type)
 			{
+				case cinematicCamType.BirdsEyeTargetStrafeVehAngle:
+					return createBirdsEyeTargetStrafeVehAngleCam(srps.targetPos, srps.vehicles[0]);
+
+				case cinematicCamType.BirdsEyeTargetRandomAngle:
+					return createBirdsEyeTargetCam(srps.targetPos);
+
 				case cinematicCamType.StrafeVeh45offset:
 					return createStrafeVeh45offsetCam(srps.vehicles[0]);
 
@@ -319,6 +327,25 @@ namespace GFPS
 				case cinematicCamType.FollowStrafeVeh:
 					return createFollowStrafeVehicleCam(srps.vehicles[0], srps.targetPos);
 			}
+		}
+
+
+		private Camera createBirdsEyeTargetStrafeVehAngleCam(Vector3 targetPos, Vehicle veh, float mult = 60f, float fov = 65f)
+		{
+			Vector3 offsetVector = (veh.Position - targetPos).Normalized * mult;	// offset from targetPos
+			Camera cam = World.CreateCamera(targetPos + offsetVector, Vector3.Zero, fov);
+			cam.PointAt(targetPos);
+			return cam;
+		}
+
+
+		private Camera createBirdsEyeTargetCam(Vector3 targetPos, float radius = 60f, float height = 30f, float fov = 65f)
+		{
+			Vector3 camPos = targetPos.Around(radius);
+			camPos.Z += height;
+			Camera cam = World.CreateCamera(camPos, Vector3.Zero, fov);
+			cam.PointAt(targetPos);
+			return cam;
 		}
 
 
