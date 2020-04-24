@@ -81,6 +81,8 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.1.5
+- improvements to Strafe Run cinematic cams
 #### 3.1.4
 - enabled custom heli models
 #### 3.1.3

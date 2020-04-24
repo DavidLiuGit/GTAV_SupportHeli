@@ -19,7 +19,7 @@ namespace GFPS
 	public class StrafeRunCinematicCamController
 	{
 		#region properties
-		private Random rng = new Random();
+		public static Random rng = new Random();
 
 		// camera properties
 		private bool _isActive = false;
@@ -143,13 +143,15 @@ namespace GFPS
 			// look at strike target from player's perspective
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.PlayerLookAtStrafeVeh, new SRCC_CT(2200, 500, 25, 25)),
-				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 2200, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(701, 700, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 5000, 25, 25)),
 			},
 
-			// strafeVeh fly-by; strike target look at strafeVeh
+			// strafeVeh fly-by; birds eye random cams
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(2501, 2500, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 10, 10))
 			},
 
 			// player look at strafeVeh, then follow strafeVeh
@@ -161,14 +163,23 @@ namespace GFPS
 			// strafeVeh fly-by, 1st person cockpit, then player look at target
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.StrafeVehFirstPerson, new SRCC_CT(5000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTarget, new SRCC_CT(701, 700, 25, 25)),
+				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 1500, 25, 25)),
 			},
 
 			// strafeVeh 45, then strafeVeh follow
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVeh45offset, new SRCC_CT(1000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 4000, 25, 25)),
+				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 2500, 25, 25)),
+			},
+
+			// follow strafeVeh, then birds eye along veh LOS
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(1600, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetStrafeVehAngle, new SRCC_CT(2801, 3300, 1, 1)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 7000, 1, 1))
 			},
 		};
 		#endregion
@@ -254,11 +265,14 @@ namespace GFPS
 		public enum cinematicCamType {
 			FollowStrafeVeh,
 			PlayerLookAtTarget,
+			PlayerLookAtTargetZoomed,
 			PlayerLookAtStrafeVeh,
 			TargetLookAtStrafeVeh,
 			StrafeVehFlyBy,
-			StrafeVehFirstPerson,
+			StrafeVehFirstPersonLookAtPos,
 			StrafeVeh45offset,			// look at strafe veh from 45 degrees CW offset
+			BirdsEyeTargetRandomAngle,
+			BirdsEyeTargetStrafeVehAngle,
 		}
 		public cinematicCamType _type;
 		#endregion
@@ -266,9 +280,11 @@ namespace GFPS
 
 
 		/// <summary>
-		/// Create 
+		/// Create an instance of <c>StrafRunCinematicCam</c> - a wrapper for the in-game <c>Camera</c>.
+		/// Params given to this constructor are used as instructions when creating and using the <c>Camera</c>
+		/// in game.
 		/// </summary>
-		/// <param name="camTransitionTo"></param>
+		/// <param name="camTransitionTo">Instance of <c>CameraTransition</c> struct</param>
 		public StrafeRunCinematicCam(cinematicCamType type, CameraTransition camTransitionTo)
 		{
 			// store settings
@@ -286,37 +302,67 @@ namespace GFPS
 		/// <returns><c>Camera</c> that can be activated</returns>
 		public Camera createCamera(StrafeRun.StrafeRunPropertiesSummary srps)
 		{
+			int randVehIdx = StrafeRunCinematicCamController.rng.Next(0, srps.vehicles.Count);
+
 			switch (_type)
 			{
-				case cinematicCamType.StrafeVeh45offset:
-					return createStrafeVeh45offsetCam(srps.vehicles[0]);
+				case cinematicCamType.BirdsEyeTargetStrafeVehAngle:
+					return createBirdsEyeTargetStrafeVehAngleCam(srps.targetPos, srps.vehicles[randVehIdx]);
 
-				case cinematicCamType.StrafeVehFirstPerson:
-					return createStrafeVehFirstPersonCam(srps.vehicles[0], srps.targetPos);
+				case cinematicCamType.BirdsEyeTargetRandomAngle:
+					return createBirdsEyeTargetCam(srps.targetPos);
+
+				case cinematicCamType.StrafeVeh45offset:
+					return createStrafeVeh45offsetCam(srps.vehicles[randVehIdx]);
+
+				case cinematicCamType.StrafeVehFirstPersonLookAtPos:
+					return createStrafeVehFirstPersonCam(srps.vehicles[randVehIdx], srps.targetPos);
 
 				case cinematicCamType.PlayerLookAtStrafeVeh:
-					return createPlayerLookAtStrafeVehCam(srps.vehicles[0]);
+					return createPlayerLookAtStrafeVehCam(srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.TargetLookAtStrafeVeh:
-					return createTargetLookAtStrafeVehCam(srps.targetPos, srps.vehicles[0]);
+					return createTargetLookAtStrafeVehCam(srps.targetPos, srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.StrafeVehFlyBy:
-					return createStrafeVehFlyByCam(srps.vehicles[0]);
+					return createStrafeVehFlyByCam(srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.PlayerLookAtTarget:
 					return createPlayerLookAtTargetCam(srps.targetPos);
 
+				case cinematicCamType.PlayerLookAtTargetZoomed:
+					return createPlayerLookAtTargetCam(srps.targetPos, 20f);
+
 				default:
 				case cinematicCamType.FollowStrafeVeh:
-					return createFollowStrafeVehicleCam(srps.vehicles[0], srps.targetPos);
+					return createFollowStrafeVehicleCam(srps.vehicles[randVehIdx], srps.targetPos);
 			}
+		}
+
+
+		private Camera createBirdsEyeTargetStrafeVehAngleCam(Vector3 targetPos, Vehicle veh, float mult = 60f, float fov = 65f)
+		{
+			Vector3 offsetVector = (veh.Position - targetPos).Normalized * mult;	// offset from targetPos
+			Camera cam = World.CreateCamera(targetPos + offsetVector, Vector3.Zero, fov);
+			cam.PointAt(targetPos);
+			return cam;
+		}
+
+
+		private Camera createBirdsEyeTargetCam(Vector3 targetPos, float radius = 50f, float height = 30f, float fov = 65f)
+		{
+			Vector3 camPos = targetPos.Around(radius);
+			camPos.Z += height;
+			Camera cam = World.CreateCamera(camPos, Vector3.Zero, fov);
+			cam.PointAt(targetPos);
+			return cam;
 		}
 
 
 		private Camera createStrafeVeh45offsetCam(Vehicle veh)
 		{
 			Camera cam = World.CreateCamera(Vector3.Zero, Vector3.Zero, 40f);
-			cam.AttachTo(veh, new Vector3(20f, 20f, 0f));
+			cam.AttachTo(veh.Driver, new Vector3(20f, 20f, 0f));
 			cam.PointAt(veh);
 			return cam;
 		}
@@ -360,10 +406,10 @@ namespace GFPS
 			return cam;
 		}
 
-		private Camera createPlayerLookAtTargetCam(Vector3 targetPos)
+		private Camera createPlayerLookAtTargetCam(Vector3 targetPos, float fov = 65f)
 		{
 			Camera cam = Helper.duplicateGameplayCam();
-			cam.FieldOfView = 30f;
+			cam.FieldOfView = fov;
 			cam.PointAt(targetPos);
 			return cam;
 		}
