@@ -150,9 +150,8 @@ namespace GFPS
 			// strafeVeh fly-by; birds eye random cams
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(3000, 2000, 25, 25)),
-				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 25, 25))
-				//new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(2501, 2500, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 10, 10))
 			},
 
 			// player look at strafeVeh, then follow strafeVeh
@@ -178,9 +177,9 @@ namespace GFPS
 
 			// follow strafeVeh, then birds eye along veh LOS
 			new StrafeRunCinematicCam[] {
-				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.BirdsEyeTargetStrafeVehAngle, new SRCC_CT(4001, 4000, 25, 25)),
-				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 25, 25))
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(1600, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetStrafeVehAngle, new SRCC_CT(2801, 3300, 1, 1)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 7000, 1, 1))
 			},
 		};
 		#endregion
@@ -348,7 +347,7 @@ namespace GFPS
 		}
 
 
-		private Camera createBirdsEyeTargetCam(Vector3 targetPos, float radius = 60f, float height = 30f, float fov = 65f)
+		private Camera createBirdsEyeTargetCam(Vector3 targetPos, float radius = 50f, float height = 30f, float fov = 65f)
 		{
 			Vector3 camPos = targetPos.Around(radius);
 			camPos.Z += height;
