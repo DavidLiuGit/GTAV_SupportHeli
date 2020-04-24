@@ -147,10 +147,12 @@ namespace GFPS
 				new SRCC(SRCC_CCT.PlayerLookAtTargetZoomed, new SRCC_CT(int.MaxValue, 5000, 25, 25)),
 			},
 
-			// strafeVeh fly-by; strike target look at strafeVeh
+			// strafeVeh fly-by; birds eye random cams
 			new StrafeRunCinematicCam[] {
 				new SRCC(SRCC_CCT.StrafeVehFlyBy, new SRCC_CT(2000, 1000, 25, 25)),
-				new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(3000, 2000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 25, 25))
+				//new SRCC(SRCC_CCT.TargetLookAtStrafeVeh, new SRCC_CT(int.MaxValue, 1000, 25, 25)),
 			},
 
 			// player look at strafeVeh, then follow strafeVeh
@@ -172,6 +174,13 @@ namespace GFPS
 				new SRCC(SRCC_CCT.StrafeVeh45offset, new SRCC_CT(1000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.StrafeVehFirstPersonLookAtPos, new SRCC_CT(5000, 1000, 25, 25)),
 				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(int.MaxValue, 2500, 25, 25)),
+			},
+
+			// follow strafeVeh, then birds eye along veh LOS
+			new StrafeRunCinematicCam[] {
+				new SRCC(SRCC_CCT.FollowStrafeVeh, new SRCC_CT(2000, 1000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetStrafeVehAngle, new SRCC_CT(4001, 4000, 25, 25)),
+				new SRCC(SRCC_CCT.BirdsEyeTargetRandomAngle, new SRCC_CT(int.MaxValue, 10000, 25, 25))
 			},
 		};
 		#endregion
