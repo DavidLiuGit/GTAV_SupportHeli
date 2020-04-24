@@ -19,7 +19,7 @@ namespace GFPS
 	public class StrafeRunCinematicCamController
 	{
 		#region properties
-		private Random rng = new Random();
+		public static Random rng = new Random();
 
 		// camera properties
 		private bool _isActive = false;
@@ -302,28 +302,30 @@ namespace GFPS
 		/// <returns><c>Camera</c> that can be activated</returns>
 		public Camera createCamera(StrafeRun.StrafeRunPropertiesSummary srps)
 		{
+			int randVehIdx = StrafeRunCinematicCamController.rng.Next(0, srps.vehicles.Count);
+
 			switch (_type)
 			{
 				case cinematicCamType.BirdsEyeTargetStrafeVehAngle:
-					return createBirdsEyeTargetStrafeVehAngleCam(srps.targetPos, srps.vehicles[0]);
+					return createBirdsEyeTargetStrafeVehAngleCam(srps.targetPos, srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.BirdsEyeTargetRandomAngle:
 					return createBirdsEyeTargetCam(srps.targetPos);
 
 				case cinematicCamType.StrafeVeh45offset:
-					return createStrafeVeh45offsetCam(srps.vehicles[0]);
+					return createStrafeVeh45offsetCam(srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.StrafeVehFirstPersonLookAtPos:
-					return createStrafeVehFirstPersonCam(srps.vehicles[0], srps.targetPos);
+					return createStrafeVehFirstPersonCam(srps.vehicles[randVehIdx], srps.targetPos);
 
 				case cinematicCamType.PlayerLookAtStrafeVeh:
-					return createPlayerLookAtStrafeVehCam(srps.vehicles[0]);
+					return createPlayerLookAtStrafeVehCam(srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.TargetLookAtStrafeVeh:
-					return createTargetLookAtStrafeVehCam(srps.targetPos, srps.vehicles[0]);
+					return createTargetLookAtStrafeVehCam(srps.targetPos, srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.StrafeVehFlyBy:
-					return createStrafeVehFlyByCam(srps.vehicles[0]);
+					return createStrafeVehFlyByCam(srps.vehicles[randVehIdx]);
 
 				case cinematicCamType.PlayerLookAtTarget:
 					return createPlayerLookAtTargetCam(srps.targetPos);
@@ -333,7 +335,7 @@ namespace GFPS
 
 				default:
 				case cinematicCamType.FollowStrafeVeh:
-					return createFollowStrafeVehicleCam(srps.vehicles[0], srps.targetPos);
+					return createFollowStrafeVehicleCam(srps.vehicles[randVehIdx], srps.targetPos);
 			}
 		}
 
