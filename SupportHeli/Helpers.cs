@@ -73,6 +73,7 @@ namespace GFPS
 			0x90C7DA60, 0x11A9A7E3, 0x45897C40, 0xC26D562A, 0x7972FFBD, 0x783E3868, 0x936E7EFB, 0x6A3B9F86, 0xB3598E9C,	// ambient gangs
 			0x7EA26372,		// prisoners
 			0x8296713E,		// dealers
+			0xE3D976F3,		// army
 		};
 
 
