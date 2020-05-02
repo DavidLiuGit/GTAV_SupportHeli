@@ -14,13 +14,13 @@ namespace GFPS
 {
 	public struct StrafeRunJdam
 	{
-		private bool _hasExploded;
+		public bool hasExploded;
 		private Vector3 _explosionPosition;
 		private int _explosionTime;
 
 		public StrafeRunJdam(Vector3 targetPos, float targetRadius)
 		{
-			_hasExploded = false;
+			hasExploded = false;
 
 			// determine the explosion position using Gaussian random var
 			_explosionPosition = targetPos.Around(Helper.randomNormal(0f, targetRadius / 2.2f));
@@ -37,15 +37,15 @@ namespace GFPS
 		/// <returns><c>true</c> if JDAM has already exploded</returns>
 		public bool onTick(int timeElapsed){
 			// if JDAM has already exploded, return true immediately
-			if (_hasExploded) return true;
+			if (hasExploded) return true;
 
 			// if it is time to explode, then explode
 			else if (timeElapsed > _explosionTime){
 				explode();
-				_hasExploded = true;
+				hasExploded = true;
 			}
 
-			return _hasExploded;
+			return hasExploded;
 		}
 
 
@@ -54,7 +54,6 @@ namespace GFPS
 		/// </summary>
 		private void explode()
 		{
-			GTA.UI.Screen.ShowHelpTextThisFrame("Exploding JDAM now");
 			World.AddExplosion(_explosionPosition, ExplosionType.Plane, 12f, 1f);
 		}
 	}

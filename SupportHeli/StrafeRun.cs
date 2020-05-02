@@ -58,7 +58,7 @@ namespace GFPS
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
 		// JDAM drops/explosions
-		protected List<StrafeRunJdam> _jdamDrops;
+		protected StrafeRunJdam[] _jdamDrops;
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
@@ -149,7 +149,7 @@ namespace GFPS
 				}
 
 				strafeVehiclesList.Clear();
-				_jdamDrops.Clear();
+				//_jdamDrops.Clear();
 
 				// free each ped in the initial targets list
 				foreach (Ped p in initialTargetList)
@@ -209,8 +209,8 @@ namespace GFPS
 			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
 
 			// coordinate JDAM drops/explosions
-			_jdamDrops = (new StrafeRunJdam[numVehicles]).Select(x => new StrafeRunJdam(_targetPos, _searchRadius)).ToList();
-			Notification.Show(_jdamDrops.Count + " jdams will be dropped");
+			_jdamDrops = (new StrafeRunJdam[strafeVehiclesList.Count])
+				.Select(x => new StrafeRunJdam(_targetPos, _searchRadius)).ToArray();
 
 			// render from cinematic cam if requested
 			if (_cinematic)
@@ -262,12 +262,16 @@ namespace GFPS
 			}
 
 			// in voke onTick of each StrafeRunJdam
-			foreach (StrafeRunJdam jdam in _jdamDrops)
-				jdam.onTick(timeElapsed);
+			//foreach (StrafeRunJdam jdam in _jdamDrops)
+			//	jdam.hasExploded = jdam.onTick(timeElapsed);
+			for (int i = 0; i < _jdamDrops.Length; i++)
+			{
+				_jdamDrops[i].onTick(timeElapsed);
+			}
 
-			// invoke onTick of StrafeRunCinematicCamController
-			if (_cinematic)
-				cineCamCtrler.onTick();
+				// invoke onTick of StrafeRunCinematicCamController
+				if (_cinematic)
+					cineCamCtrler.onTick();
 		}
 		#endregion
 
