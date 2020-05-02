@@ -45,9 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\lap_timer\LapTimer\iniReader.cs">
-      <Link>iniReader.cs</Link>
-    </Compile>
     <Compile Include="AttackHeliHandler.cs" />
     <Compile Include="CrewHandler.cs" />
     <Compile Include="HeliHandler.cs" />

@@ -10,7 +10,6 @@ using GTA;
 using GTA.Native;
 using GTA.Math;
 
-using LapTimer;
 
 
 namespace GFPS
@@ -21,7 +20,6 @@ namespace GFPS
 		bool firstTime = true;
 		string ModName = "Support Heli";
 		string Developer = "iLike2Teabag";
-		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
 
 		// activation keys
 		Keys activateKey = Keys.F10;
@@ -195,6 +193,7 @@ namespace GFPS
 				ss.GetValue<float>(sec, "spawnRadius", 375f),
 				ss.GetValue<float>(sec, "spawnHeight", 275f),
 				ss.GetValue<float>(sec, "targetRadius", 50f),
+				ss.GetValue<bool>(sec, "dropBombs", true),
 				ss.GetValue<bool>(sec, "cinematic", true)
 				);
 

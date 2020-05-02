@@ -21,9 +21,10 @@ namespace GFPS
 		public bool _cinematic = true;
 		protected float _height;
 		protected float _radius;
-		protected int _timeout = 20000;		// _timeout after 15 seconds
-		protected float _searchRadius = 30f;
-		protected int numVehicles = 3;
+		protected int _timeout = 20000;		// timeout after 20 seconds
+		protected float _searchRadius;
+		protected int numVehicles;
+		protected bool _dropJdam;
 
 		// flags
 		protected bool _isActive;
@@ -96,13 +97,14 @@ namespace GFPS
 		/// <param name="height">Z-axis, or height, above the target position of each strafe run to spawn</param>
 		/// <param name="targetRadius">Distance around the target position to detect targets each strafe run</param>
 		/// <param name="cinematic">if <c>true</c>, activate cinematic camera on each strafe run</param>
-		public StrafeRun(float radius, float height, float targetRadius, bool cinematic = true)
+		public StrafeRun(float radius, float height, float targetRadius, bool dropBombs, bool cinematic = true)
 		{
 			// settings
 			_height = height;
 			_radius = radius;
 			_cinematic = cinematic;
 			_searchRadius = targetRadius;
+			_dropJdam = dropBombs;
 
 			// other preparations
 			relGroup = Game.Player.Character.RelationshipGroup;
@@ -508,7 +510,7 @@ namespace GFPS
 
 
 		/// <summary>
-		/// 
+		/// Test multiple randomly-selected valid strafe run spawn points and determine the best spawn point
 		/// </summary>
 		/// <param name="targetPos">Target position; origin of target search</param>
 		/// <param name="targets">List of targets</param>
