@@ -57,6 +57,9 @@ namespace GFPS
 		};
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
 
+		// JDAM drops/explosions
+		protected List<StrafeRunJdam> _jdamDrops;
+
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
 		protected Camera duplicateGameplayCam;
@@ -146,6 +149,7 @@ namespace GFPS
 				}
 
 				strafeVehiclesList.Clear();
+				_jdamDrops.Clear();
 
 				// free each ped in the initial targets list
 				foreach (Ped p in initialTargetList)
@@ -204,6 +208,10 @@ namespace GFPS
 			// mark the target position with flare ptfx
 			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
 
+			// coordinate JDAM drops/explosions
+			_jdamDrops = (new StrafeRunJdam[numVehicles]).Select(x => new StrafeRunJdam(_targetPos, _searchRadius)).ToList();
+			Notification.Show(_jdamDrops.Count + " jdams will be dropped");
+
 			// render from cinematic cam if requested
 			if (_cinematic)
 				cineCamCtrler.initializeCinematicCamSequence(
@@ -225,7 +233,8 @@ namespace GFPS
 			if (!_isActive) return;
 
 			// if active, check if timed out;
-			if (Game.GameTime - _spawnTime > _timeout)
+			int timeElapsed = Game.GameTime - _spawnTime;		// time elapsed since start of strafe run
+			if (timeElapsed > _timeout)
 			{
 				Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
@@ -251,6 +260,10 @@ namespace GFPS
 				SimplePriorityQueue<Ped> targetQ = buildTargetPriorityQueue(_targetPos, _searchRadius);
 				taskAllPilotsEngage(targetQ);
 			}
+
+			// in voke onTick of each StrafeRunJdam
+			foreach (StrafeRunJdam jdam in _jdamDrops)
+				jdam.onTick(timeElapsed);
 
 			// invoke onTick of StrafeRunCinematicCamController
 			if (_cinematic)

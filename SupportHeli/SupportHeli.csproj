@@ -51,6 +51,7 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="StrafeRun.cs" />
     <Compile Include="StrafeRunCinematicCam.cs" />
+    <Compile Include="StrafeRunJdam.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportHeliHandler.cs" />
