@@ -21,7 +21,6 @@ namespace GFPS
 		bool firstTime = true;
 		string ModName = "Support Heli";
 		string Developer = "iLike2Teabag";
-		string Version = "1.0";
 		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
 
 		// activation keys
@@ -47,7 +46,7 @@ namespace GFPS
 		{
 			if (firstTime) // if this is the users first time loading the mod, this information will appear
 			{
-				GTA.UI.Notification.Show(ModName + " " + Version + " by " + Developer + " Loaded");
+				GTA.UI.Notification.Show(ModName + " by " + Developer + " Loaded");
 				firstTime = false;
 
 				readSettings();
