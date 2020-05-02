@@ -193,7 +193,7 @@ namespace GFPS
 				ss.GetValue<float>(sec, "spawnRadius", 375f),
 				ss.GetValue<float>(sec, "spawnHeight", 275f),
 				ss.GetValue<float>(sec, "targetRadius", 50f),
-				ss.GetValue<bool>(sec, "dropBombs", true),
+				ss.GetValue<int>(sec, "bombsPerPlane", 2),
 				ss.GetValue<bool>(sec, "cinematic", true)
 				);
 

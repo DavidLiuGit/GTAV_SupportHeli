@@ -23,7 +23,7 @@ namespace GFPS
 			hasExploded = false;
 
 			// determine the explosion position using Gaussian random var
-			_explosionPosition = targetPos.Around(Helper.randomNormal(0f, targetRadius / 2.2f));
+			_explosionPosition = targetPos.Around(Helper.randomNormal(0f, targetRadius / 2.8f));
 
 			// determine the explosion time (as milliseconds after start of strafe run)
 			_explosionTime = (int)Helper.randomNormal(6000f, 1250f);

@@ -24,7 +24,7 @@ namespace GFPS
 		protected int _timeout = 20000;		// timeout after 20 seconds
 		protected float _searchRadius;
 		protected int numVehicles;
-		protected bool _dropJdam;
+		protected int _jdamsPerVehicle;
 
 		// flags
 		protected bool _isActive;
@@ -100,14 +100,14 @@ namespace GFPS
 		/// <param name="height">Z-axis, or height, above the target position of each strafe run to spawn</param>
 		/// <param name="targetRadius">Distance around the target position to detect targets each strafe run</param>
 		/// <param name="cinematic">if <c>true</c>, activate cinematic camera on each strafe run</param>
-		public StrafeRun(float radius, float height, float targetRadius, bool dropBombs, bool cinematic = true)
+		public StrafeRun(float radius, float height, float targetRadius, int bombsPerPlane, bool cinematic = true)
 		{
 			// settings
 			_height = height;
 			_radius = radius;
 			_cinematic = cinematic;
 			_searchRadius = targetRadius;
-			_dropJdam = dropBombs;
+			_jdamsPerVehicle = bombsPerPlane;
 
 			// other preparations
 			relGroup = Game.Player.Character.RelationshipGroup;
@@ -209,7 +209,7 @@ namespace GFPS
 			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
 
 			// coordinate JDAM drops/explosions
-			_jdamDrops = (new StrafeRunJdam[strafeVehiclesList.Count])
+			_jdamDrops = (new StrafeRunJdam[strafeVehiclesList.Count * _jdamsPerVehicle])
 				.Select(x => new StrafeRunJdam(_targetPos, _searchRadius)).ToArray();
 
 			// render from cinematic cam if requested
