@@ -204,13 +204,6 @@ namespace GFPS
 
 			// manipulate heliRg
 			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
-
-			// debug printouts
-			if (verbose)
-			{
-				GTA.UI.Notification.Show(attackHeli.getSettingsString());
-				GTA.UI.Notification.Show(supportHeli.getSettingsString());
-			}
 		}
 
 

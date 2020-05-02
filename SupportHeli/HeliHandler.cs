@@ -72,7 +72,7 @@ namespace GFPS
 		public Heli(string model, float height, float radius, bool bulletproof)
 		{
 			//_model = model;
-			_model = Game.GenerateHash(model);
+			_model = (Model)Game.GenerateHash(model);
 			_height = height;
 			_radius = radius;
 			_isBulletproof = bulletproof;
@@ -153,18 +153,6 @@ namespace GFPS
 		{
 			_leader = leader;
 			return spawnMannedHeli();
-		}
-
-
-
-		/// <summary>
-		/// Get summary of settings in a string.
-		/// </summary>
-		/// <returns>Summary of settings</returns>
-		public string getSettingsString()
-		{
-			return string.Format("Heli: {0}~n~ Height: {1}~n~ Radius: {2}~n~ Bulletproof: {3}",
-				_model, _height, _radius, _isBulletproof);
 		}
 
 
