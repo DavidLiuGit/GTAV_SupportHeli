@@ -21,9 +21,10 @@ namespace GFPS
 		public bool _cinematic = true;
 		protected float _height;
 		protected float _radius;
-		protected int _timeout = 20000;		// _timeout after 15 seconds
-		protected float _searchRadius = 30f;
-		protected int numVehicles = 3;
+		protected int _timeout = 20000;		// timeout after 20 seconds
+		protected float _searchRadius;
+		protected int numVehicles;
+		protected int _jdamsPerVehicle;
 
 		// flags
 		protected bool _isActive;
@@ -55,6 +56,9 @@ namespace GFPS
 			new Vector3(2 * formationOffsetUnit, -2 * formationOffsetUnit, formationHeightOffsetUnit * 2)
 		};
 		protected readonly uint[] formationWeapons = new uint[] { 955522731, 519052682, 955522731, 519052682, 955522731 };
+
+		// JDAM drops/explosions
+		protected StrafeRunJdam[] _jdamDrops;
 
 		// object references
 		protected List<Vehicle> strafeVehiclesList = new List<Vehicle>();
@@ -96,13 +100,14 @@ namespace GFPS
 		/// <param name="height">Z-axis, or height, above the target position of each strafe run to spawn</param>
 		/// <param name="targetRadius">Distance around the target position to detect targets each strafe run</param>
 		/// <param name="cinematic">if <c>true</c>, activate cinematic camera on each strafe run</param>
-		public StrafeRun(float radius, float height, float targetRadius, bool cinematic = true)
+		public StrafeRun(float radius, float height, float targetRadius, int bombsPerPlane, bool cinematic = true)
 		{
 			// settings
 			_height = height;
 			_radius = radius;
 			_cinematic = cinematic;
 			_searchRadius = targetRadius;
+			_jdamsPerVehicle = bombsPerPlane;
 
 			// other preparations
 			relGroup = Game.Player.Character.RelationshipGroup;
@@ -144,6 +149,7 @@ namespace GFPS
 				}
 
 				strafeVehiclesList.Clear();
+				//_jdamDrops.Clear();
 
 				// free each ped in the initial targets list
 				foreach (Ped p in initialTargetList)
@@ -202,6 +208,10 @@ namespace GFPS
 			// mark the target position with flare ptfx
 			targetMarkerPtfx = World.CreateParticleEffect(targetMarkerPtfxAsset, "exp_grd_flare", targetPos);
 
+			// coordinate JDAM drops/explosions
+			_jdamDrops = (new StrafeRunJdam[strafeVehiclesList.Count * _jdamsPerVehicle])
+				.Select(x => new StrafeRunJdam(_targetPos, _searchRadius)).ToArray();
+
 			// render from cinematic cam if requested
 			if (_cinematic)
 				cineCamCtrler.initializeCinematicCamSequence(
@@ -223,7 +233,8 @@ namespace GFPS
 			if (!_isActive) return;
 
 			// if active, check if timed out;
-			if (Game.GameTime - _spawnTime > _timeout)
+			int timeElapsed = Game.GameTime - _spawnTime;		// time elapsed since start of strafe run
+			if (timeElapsed > _timeout)
 			{
 				Notification.Show("Strafe run timed out; dismissing");
 				destructor(false);				// dismiss gracefully
@@ -250,9 +261,17 @@ namespace GFPS
 				taskAllPilotsEngage(targetQ);
 			}
 
-			// invoke onTick of StrafeRunCinematicCamController
-			if (_cinematic)
-				cineCamCtrler.onTick();
+			// in voke onTick of each StrafeRunJdam
+			//foreach (StrafeRunJdam jdam in _jdamDrops)
+			//	jdam.hasExploded = jdam.onTick(timeElapsed);
+			for (int i = 0; i < _jdamDrops.Length; i++)
+			{
+				_jdamDrops[i].onTick(timeElapsed);
+			}
+
+				// invoke onTick of StrafeRunCinematicCamController
+				if (_cinematic)
+					cineCamCtrler.onTick();
 		}
 		#endregion
 
@@ -306,11 +325,7 @@ namespace GFPS
 
 			// spawn strafe run vehicle
 			Vehicle veh = World.CreateVehicle(strafeVehicleModel, spawnPos);
-
-			// HOTFIX: per MarcoKJ's report, Strikeforce hash may be 192258
-			if (veh == null)
-				veh = World.CreateVehicle((Model)192258, spawnPos);
-
+			
 			// verify that the vehicle was successfully spawned
 			if (veh == null) 
 				Notification.Show("~r~Failed to spawn the vehicle. Check that you have the required DLC.");
@@ -512,7 +527,7 @@ namespace GFPS
 
 
 		/// <summary>
-		/// 
+		/// Test multiple randomly-selected valid strafe run spawn points and determine the best spawn point
 		/// </summary>
 		/// <param name="targetPos">Target position; origin of target search</param>
 		/// <param name="targets">List of targets</param>

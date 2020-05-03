@@ -16,10 +16,9 @@ A GTA5 mod that that enables the player to call in air support, in the form of P
 * Smuggler's Run DLC is required to use Hunter
 
 ---
-## Precision Air Strike (Strafe Run) - BETA
-A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.
-
-*This feature is currently in beta testing. I appreciate your patience while I work out the bugs, and welcome all feedback to help improve this feature.*
+## Precision Air Strike (Strafe Run)
+A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except friendly NPCs) near the target position of your choice. Be careful not to stand too close! Jets use explosive cannons as well as homing missiles.  
+Each jet also drops bombs. Number of bombs per jet can be changed in INI.
 
 ### Usage
 By default, `[activateKey]` is `F12`. This can be changed in settings. Call in a strafe run using any method below
@@ -81,6 +80,9 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.2
+- implemented bomb drops for strafe run
+  - each plane drops, by default, 2 bombs in the target area. Can be changed in INI
 #### 3.1.5
 - improvements to Strafe Run cinematic cams
 #### 3.1.4

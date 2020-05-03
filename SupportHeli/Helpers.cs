@@ -15,6 +15,7 @@ namespace GFPS
 	{
 		static Random rng = new Random();
 
+		#region Vector
 		/// <summary>
 		/// Generate an offset Vector3. Offset by specified _height, and at a random point in a circle, defined by <c>haloRadius</c>
 		/// </summary>
@@ -58,9 +59,18 @@ namespace GFPS
 		{
 			return targetPos + getOffsetVector3(0.0f, radius);
 		}
+		#endregion
 
 
 
+
+		#region relationships
+		/// <summary>
+		/// Set relationship between a specified <c>RelationshipGroup</c> and an array of 
+		/// of <c>RelationshipGroup</c>s to Hate. Relationship is one-way, only
+		/// </summary>
+		/// <param name="rg"><c>RelationshipGroup</c> to modify</param>
+		/// <param name="hateGroupHashes">Array of <c>RelationshipGroup</c> hashes to apply relationship with</param>
 		public static void makeRelationshipGroupHate(RelationshipGroup rg, uint[] hateGroupHashes)
 		{
 			foreach (uint group in hateGroupHashes)
@@ -73,6 +83,7 @@ namespace GFPS
 			0x90C7DA60, 0x11A9A7E3, 0x45897C40, 0xC26D562A, 0x7972FFBD, 0x783E3868, 0x936E7EFB, 0x6A3B9F86, 0xB3598E9C,	// ambient gangs
 			0x7EA26372,		// prisoners
 			0x8296713E,		// dealers
+			0xE3D976F3,		// army
 		};
 
 
@@ -83,6 +94,7 @@ namespace GFPS
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg1Hash, rg2Hash);
 			Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, 0, rg2Hash, rg1Hash);
 		}
+		#endregion
 
 
 
@@ -181,6 +193,27 @@ namespace GFPS
 			Camera cam = World.CreateCamera(GameplayCamera.Position, GameplayCamera.Rotation, GameplayCamera.FieldOfView);
 			return cam;
 		}
+		#endregion
+
+
+
+
+		#region math
+		/// <summary>
+		/// Generate a random Gaussian floating point number using Box-Muller transformation
+		/// </summary>
+		/// <param name="mean">Mean (average) of the Gaussian distribution</param>
+		/// <param name="stdDev">Standard deviation of the Gaussian distribution</param>
+		/// <returns><c>float</c></returns>
+		public static float randomNormal(float mean = 0f, float stdDev = 1f)
+		{
+			double u1 = 1.0 - rng.NextDouble();
+			double u2 = 1.0 - rng.NextDouble();
+			double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
+			double randNormal = mean + stdDev * randStdNormal;
+			return (float)randNormal;
+		}
+
 		#endregion
 	}
 }

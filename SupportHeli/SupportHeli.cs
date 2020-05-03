@@ -10,7 +10,6 @@ using GTA;
 using GTA.Native;
 using GTA.Math;
 
-using LapTimer;
 
 
 namespace GFPS
@@ -21,8 +20,6 @@ namespace GFPS
 		bool firstTime = true;
 		string ModName = "Support Heli";
 		string Developer = "iLike2Teabag";
-		string Version = "1.0";
-		IniFile ini = new IniFile("./scripts/SupportHeli.ini");
 
 		// activation keys
 		Keys activateKey = Keys.F10;
@@ -47,7 +44,7 @@ namespace GFPS
 		{
 			if (firstTime) // if this is the users first time loading the mod, this information will appear
 			{
-				GTA.UI.Notification.Show(ModName + " " + Version + " by " + Developer + " Loaded");
+				GTA.UI.Notification.Show(ModName + " by " + Developer + " Loaded");
 				firstTime = false;
 
 				readSettings();
@@ -196,6 +193,7 @@ namespace GFPS
 				ss.GetValue<float>(sec, "spawnRadius", 375f),
 				ss.GetValue<float>(sec, "spawnHeight", 275f),
 				ss.GetValue<float>(sec, "targetRadius", 50f),
+				ss.GetValue<int>(sec, "bombsPerPlane", 2),
 				ss.GetValue<bool>(sec, "cinematic", true)
 				);
 
@@ -204,13 +202,6 @@ namespace GFPS
 
 			// manipulate heliRg
 			Helper.makeRelationshipGroupHate(heliRg, Helper.defaultHateGroups);
-
-			// debug printouts
-			if (verbose)
-			{
-				GTA.UI.Notification.Show(attackHeli.getSettingsString());
-				GTA.UI.Notification.Show(supportHeli.getSettingsString());
-			}
 		}
 
 

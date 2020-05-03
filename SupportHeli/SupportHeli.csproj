@@ -45,15 +45,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\lap_timer\LapTimer\iniReader.cs">
-      <Link>iniReader.cs</Link>
-    </Compile>
     <Compile Include="AttackHeliHandler.cs" />
     <Compile Include="CrewHandler.cs" />
     <Compile Include="HeliHandler.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="StrafeRun.cs" />
     <Compile Include="StrafeRunCinematicCam.cs" />
+    <Compile Include="StrafeRunJdam.cs" />
     <Compile Include="SupportHeli.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportHeliHandler.cs" />
@@ -67,7 +65,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(Targetpath)" "H:\Games\Grand Theft Auto V\scripts"
-copy /Y "$(SolutionDir)\README.html" "H:\Games\Grand Theft Auto V\scripts\SupportHeliReadMe.html"</PostBuildEvent>
+powershell "Compress-Archive -Force '$(ProjectDir)$(TargetName).ini', '$(TargetPath)', '$(SolutionDir)README.html', '$(TargetDir)Priority Queue.dll', '$(ProjectDir)vehicleweapons_strikeforce.meta' '$(TargetDir)$(TargetName).zip'"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
