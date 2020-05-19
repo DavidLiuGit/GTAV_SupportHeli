@@ -26,6 +26,8 @@ namespace GFPS
 		protected bool pilotLand = false;
 
 		// consts
+		protected const float _spawnRadiusMultiplier = 15f;
+		protected const float _spawnHeightMultiplier = 6f;
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 		protected const float warpIntoDistanceThreshold = 6f;
@@ -137,7 +139,10 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(_height, _radius), _model);
+				Vector3 spawnOffsetVector = this._spawnFarAway ? 
+					Helper.getOffsetVector3(_height * _spawnHeightMultiplier, _radius * _spawnRadiusMultiplier) :
+					Helper.getOffsetVector3(_height, _radius);
+				heli = spawnHeli(spawnOffsetVector, _model);
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				_isActive = true;
