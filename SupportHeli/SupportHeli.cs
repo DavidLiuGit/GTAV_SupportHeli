@@ -172,7 +172,8 @@ namespace GFPS
 				ss.GetValue<string>(sec, "HeliModel", "Akula"),
 				ss.GetValue<float>(sec, "height", 20f),
 				ss.GetValue<float>(sec, "radius", 20f),
-				ss.GetValue<bool>(sec, "bulletproof", true)
+				ss.GetValue<bool>(sec, "bulletproof", true),
+				ss.GetValue<bool>(sec, "spawnFarAway", false)
 				);
 			RelationshipGroup heliRg = attackHeli._rg;
 
@@ -182,7 +183,8 @@ namespace GFPS
 				ss.GetValue<string>(sec, "HeliModel", "Polmav"),
 				ss.GetValue<float>(sec, "height", 20f),
 				ss.GetValue<float>(sec, "radius", 20f),
-				ss.GetValue<bool>(sec, "bulletproof", true)
+				ss.GetValue<bool>(sec, "bulletproof", true),
+				ss.GetValue<bool>(sec, "spawnFarAway", false)
 				);
 			supportHeli._rg = heliRg;
 

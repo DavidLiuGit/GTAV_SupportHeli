@@ -18,6 +18,7 @@ namespace GFPS
 		protected float _height;
 		protected float _radius;
 		protected bool _isBulletproof;
+		protected bool _spawnFarAway;
 
 		// flags 
 		protected bool _isActive = false;
@@ -69,13 +70,14 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public Heli(string model, float height, float radius, bool bulletproof)
+		public Heli(string model, float height, float radius, bool bulletproof, bool spawnFarAway)
 		{
-			//_model = model;
+			// settings
 			_model = (Model)Game.GenerateHash(model);
 			_height = height;
 			_radius = radius;
 			_isBulletproof = bulletproof;
+			_spawnFarAway = spawnFarAway;
 
 			// instantiate a relationship group
 			_leader = Game.Player.Character;
