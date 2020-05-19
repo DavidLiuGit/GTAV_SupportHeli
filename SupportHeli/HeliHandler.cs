@@ -18,6 +18,7 @@ namespace GFPS
 		protected float _height;
 		protected float _radius;
 		protected bool _isBulletproof;
+		protected bool _spawnFarAway;
 
 		// flags 
 		protected bool _isActive = false;
@@ -25,6 +26,8 @@ namespace GFPS
 		protected bool pilotLand = false;
 
 		// consts
+		protected const float _spawnRadiusMultiplier = 15f;
+		protected const float _spawnHeightMultiplier = 6f;
 		protected const WeaponHash sidearm = WeaponHash.Pistol;
 		protected const FiringPattern fp = FiringPattern.FullAuto;
 		protected const float warpIntoDistanceThreshold = 6f;
@@ -69,13 +72,14 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public Heli(string model, float height, float radius, bool bulletproof)
+		public Heli(string model, float height, float radius, bool bulletproof, bool spawnFarAway)
 		{
-			//_model = model;
+			// settings
 			_model = (Model)Game.GenerateHash(model);
 			_height = height;
 			_radius = radius;
 			_isBulletproof = bulletproof;
+			_spawnFarAway = spawnFarAway;
 
 			// instantiate a relationship group
 			_leader = Game.Player.Character;
@@ -135,7 +139,10 @@ namespace GFPS
 			// otherwise, spawn a heli and place a pilot in the driver seat
 			else
 			{
-				heli = spawnHeli(Helper.getOffsetVector3(_height, _radius), _model);
+				Vector3 spawnOffsetVector = this._spawnFarAway ? 
+					Helper.getOffsetVector3(_height * _spawnHeightMultiplier, _radius * _spawnRadiusMultiplier) :
+					Helper.getOffsetVector3(_height, _radius);
+				heli = spawnHeli(spawnOffsetVector, _model);
 				pilot = spawnPilotIntoHeli();
 				passengers = spawnCrewIntoHeli();
 				_isActive = true;

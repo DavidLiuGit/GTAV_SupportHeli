@@ -35,8 +35,8 @@ namespace GFPS
 		/// <param name="height">hover _height of the helicopter</param>
 		/// <param name="radius">hover _radius of the helicopter</param>
 		/// <param name="bulletproof">Whether the helicopter is _isBulletproof</param>
-		public SupportHeli(string model, float height, float radius, bool bulletproof)
-			: base(model, height, radius, bulletproof)
+		public SupportHeli(string model, float height, float radius, bool bulletproof, bool spawnFarAway)
+			: base(model, height, radius, bulletproof, spawnFarAway)
 		{
 			// get the player's current PedGroup (or create a new one if player is not in one)
 			leaderPedGroup = _leader.PedGroup;
