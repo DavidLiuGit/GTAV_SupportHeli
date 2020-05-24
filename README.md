@@ -80,6 +80,8 @@ If you have feedback or questions, I want to hear them. You can leave a comment 
 
 
 ### Changelog
+#### 3.4
+- implement support for custom ped models for ground crew
 #### 3.3
 - implemented setting to spawn helicopters further away from the player
 #### 3.2
