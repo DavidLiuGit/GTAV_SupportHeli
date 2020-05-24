@@ -75,7 +75,10 @@ namespace GFPS
 		{
 			// make sure there are gunners in the crew seats
 			Ped[] newGroundCrew = new Ped[] {
-				spawnCrewGunner(seatSelection[seatIndex % seatSelection.Length], CrewHandler.weaponsOfRoles[role]),
+				spawnCrewGunner(
+					seatSelection[seatIndex % seatSelection.Length], 
+					CrewHandler.weaponsOfRoles[role], 
+					getRandomPedModel(crewSettings)),
 				//spawnCrewGunner(VehicleSeat.RightRear, CrewHandler.weaponsOfRoles[role]),
 			};
 			seatIndex++;
@@ -104,6 +107,19 @@ namespace GFPS
 
 
 		#region helpers
+		/// <summary>
+		/// Select a random ground crew model from <c>GroundCrewSettings</c>
+		/// </summary>
+		/// <param name="crewSettings">instance of <c>GroundCrewSettings</c></param>
+		/// <returns><c>Model</c></returns>
+		protected Model getRandomPedModel(GroundCrewSettings crewSettings)
+		{
+			int modelIndex = rng.Next(0, crewSettings.modelArray.Length);
+			return crewSettings.modelArray[modelIndex];
+		}
+
+
+
 		/// <summary>
 		/// Spawn the heli's passengers
 		/// </summary>

@@ -34,6 +34,7 @@ namespace GFPS
 		protected const float cruiseAltitudeMultiplier = 1.5f;		// when cruising, heli will fly at a different _height
 		protected const BlipColor defaultBlipColor = BlipColor.Green;
 		protected virtual Model fallbackModel { get { return (Model) VehicleHash.Buzzard; } }
+		protected readonly Model defaultGunnerModel = new Model(PedHash.Blackops01SMY);
 
 		// object references
 		protected Ped _leader;
@@ -406,8 +407,22 @@ namespace GFPS
 		/// </summary>
 		/// <param name="seat">Seat to spawn Ped into</param>
 		/// <param name="weaponArray">Array of <c>WeaponHash</c> to give the gunner</param>
-		/// <returns></returns>
+		/// <returns><c>Ped</c> just spawned</returns>
 		protected Ped spawnCrewGunner(VehicleSeat seat, WeaponHash[] weaponArray)
+		{
+			// use default ped model
+			return spawnCrewGunner(seat, weaponArray, defaultGunnerModel);
+		}
+
+
+		/// <summary>
+		/// Spawn an allied <c>Ped</c> into a seat of the Heli, and give the specified weapons
+		/// </summary>
+		/// <param name="seat">Seat to spawn Ped into</param>
+		/// <param name="weaponArray">Array of <c>WeaponHash</c> to give the gunner</param>
+		/// <param name="pedModel"><c>Model</c> of Ped to spawn</param>
+		/// <returns><c>Ped</c> just spawned</returns>
+		protected Ped spawnCrewGunner(VehicleSeat seat, WeaponHash[] weaponArray, Model pedModel)
 		{
 			// if seat is occupied, delete the NPC in the seat
 			Ped seatOccupant = heli.GetPedOnSeat(seat);
@@ -415,7 +430,7 @@ namespace GFPS
 				seatOccupant.Delete();
 
 			// spawn the crew into the specified seat
-			Ped gunner = heli.CreatePedOnSeat(seat, PedHash.Blackops01SMY);
+			Ped gunner = heli.CreatePedOnSeat(seat, pedModel);
 
 			// ally the crew to the player
 			gunner.RelationshipGroup = _rg;
