@@ -221,7 +221,7 @@ namespace GFPS
 	public class GroundCrewSettings
 	{
 		// creation-time settings
-		public PedHash[] modelArray = new PedHash[1] { PedHash.Blackops01SMY };
+		public Model[] modelArray = new Model[1] { PedHash.Blackops01SMY };
 		public bool drawBlip = false;
 		
 		// settings that can be applied to Peds
@@ -242,6 +242,7 @@ namespace GFPS
 		public GroundCrewSettings(ScriptSettings ss)
 		{
 			const string section = "GroundCrew";
+			modelArray = parseModelSettings(ss.GetValue<string>(section, "models", "s_m_y_blackops_01"));
 			health = ss.GetValue<int>(section, "health", health);
 			isInvincible = ss.GetValue<bool>(section, "invincible", isInvincible);
 			canRagdoll = ss.GetValue<bool>(section, "canRagdoll", canRagdoll);
@@ -260,6 +261,14 @@ namespace GFPS
 			npc.CanRagdoll = canRagdoll;
 			npc.CanWrithe = canWrithe;
 			npc.Weapons.Give(sidearm, 9999, false, true);
+		}
+
+
+
+		private Model[] parseModelSettings (string modelString)
+		{
+			string[] modelSplit = modelString.Split(',');
+			return modelSplit.Select(model => (Model)Game.GenerateHash(model)).ToArray();
 		}
 	}
 }
