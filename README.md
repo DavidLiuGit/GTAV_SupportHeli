@@ -6,7 +6,8 @@ A GTA5 mod that that enables the player to call in air support, in the form of P
 * place `Priority Queue.dll`, `SupportHeli.dll`, and `SupportHeli.ini` in your `scripts` folder
 * **Highly recommended**: replace `vehicleweapons_strikeforce.meta` in `update/x64/dlcpacks/mpbattle/common/data/ai`
   * this modified file moderately extends the range and increases the fire rate of the B-11 Strikeforce's cannon
-* Make sure you have [ScriptHookVDotNet v3.x](https://www.gta5-mods.com/tools/scripthookv-net)
+* Make sure you have the latest [ScriptHookVDotNet v3.x](https://github.com/crosire/scripthookvdotnet/releases)
+  * gta5-mods.com does not have the latest SHV.NET. Get it directly from the GitHub release page.
 * Make sure you have installed [.NET 4.8 Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 
 ### DLC requirements
@@ -21,7 +22,7 @@ A formation of jets (B-11 Strikeforce) is spawned and targets any NPCs (except f
 Each jet also drops bombs. Number of bombs per jet can be changed in INI.
 
 ### Usage
-By default, `[activateKey]` is `F12`. This can be changed in settings. Call in a strafe run using any method below
+By default, `[activateKey]` is `F11`. This can be changed in settings. Call in a strafe run using any method below
 1. While aiming, press `[activateKey]`
 2. Press `[activateKey]`. You will be given a flare gun to mark the position of the strafe run. The run begins after the flare hits something (e.g. the ground, vehicles, NPCs, etc.)
 
